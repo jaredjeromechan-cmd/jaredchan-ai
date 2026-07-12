@@ -1,0 +1,80 @@
+{
+  "hosting": {
+    "public": "portfolio",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/builds",
+        "destination": "/projects",
+        "type": 301
+      },
+      {
+        "source": "/builds/**",
+        "destination": "/projects",
+        "type": 301
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css|png|jpg|jpeg|svg|webp|woff2)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/projects",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/projects/",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/projects/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/about-builder01",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/about-builder01/",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

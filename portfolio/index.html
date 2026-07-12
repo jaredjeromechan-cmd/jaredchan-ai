@@ -1,0 +1,2362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.E.D</title>
+<meta name="description" content="Just Another Really Exhausted Dude.">
+<!-- Chat apps build link previews from Open Graph, not favicons, so the
+     resident fronts the share card himself: accent green on the field's dark.
+     Kept under 300px so WhatsApp renders the small side thumbnail, not the hero card. -->
+<meta property="og:title" content="J.A.R.E.D">
+<meta property="og:description" content="Just Another Really Exhausted Dude.">
+<meta property="og:url" content="https://www.jaredchan.ai/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://www.jaredchan.ai/og-image.png">
+<meta property="og:image:width" content="256">
+<meta property="og:image:height" content="256">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.jaredchan.ai/og-image.png">
+<!-- The adaptive SVG flips black/white with the browser theme; the PNG
+     is the fallback for browsers that skip SVG favicons (Safari). -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.png" type="image/png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap');
+
+  :root {
+    --bg-deep: #010805;
+    --bg-mid: #03140c;
+    --bg-soft: #082118;
+    --particle: #d4f4e2;
+    --core-warm: #e6ffec;
+    --core-hot: #4ade80;
+    --text-primary: #d6e8dd;
+    --text-muted: #5e8b76;
+    --text-dim: #2d4a3a;
+    --accent: #5fbf85;
+    --text-body: #9fc2b0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body, html {
+    width: 100%;
+    /* dvh is the height actually visible on phones (the plain vh unit
+       includes the strip hidden behind the browser's address bar) */
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, var(--bg-mid) 0%, var(--bg-deep) 70%);
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  }
+
+  #canvas-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #stage {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    /* Bottom padding parks the Enter button in the gap between the
+       sphere's base and the bottom edge of the screen. */
+    padding: 6vh 0 12vh 0;
+    pointer-events: none; /* let drags pass through to the canvas */
+    z-index: 10;
+  }
+
+  .header { text-align: center; }
+
+  .title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    letter-spacing: 0.6em;
+    text-indent: 0.6em;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    font-size: 0.65rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: var(--text-muted);
+    margin-top: 1em;
+    text-transform: uppercase;
+  }
+
+  .footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .cta {
+    pointer-events: auto;
+    display: inline-block;
+    background: transparent;
+    border: 1px solid var(--text-dim);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    text-indent: 0.35em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 1em 2.4em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+  }
+
+  .cta:hover {
+    border-color: var(--core-hot);
+    color: var(--core-warm);
+    box-shadow: 0 0 24px rgba(74, 222, 128, 0.15);
+  }
+
+  /* site chrome: slim header and footer bands that everything scrolls under */
+  .chrome {
+    position: fixed;
+    left: 0; right: 0;
+    z-index: 40;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 44px;
+    padding: 0 2.5vw;
+    font-size: 0.55rem;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .chrome.top {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(1, 8, 5, 0.95) 55%, rgba(1, 8, 5, 0));
+  }
+  .chrome.bottom {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(1, 8, 5, 0.95) 55%, rgba(1, 8, 5, 0));
+  }
+
+  /* Enter: the UI fades while the field itself carries the transition;
+     the projects scene then fades up inside the same living space */
+  #stage { transition: opacity 0.45s ease; }
+  body.warping #stage { opacity: 0; }
+
+  /* ----- continuous world: index and case files live on this page ----- */
+  .scene {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    /* uniform scrim: the field stays alive behind, but politely dark */
+    background: rgba(1, 8, 5, 0.62);
+  }
+  .scene.open {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.8s ease 0.25s;
+  }
+  body.in-scene #stage { opacity: 0; pointer-events: none; }
+
+  /* The matter layer: transition dots fly on this canvas, above the scenes
+     and their scrims but below the chrome bands. */
+  #fx { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  /* Living tethers: hairlines from each project card to a particle it holds
+     onto, redrawn every frame; above the scene scrim, below the matter layer. */
+  #tether { position: fixed; inset: 0; z-index: 25; pointer-events: none; }
+  /* Used mid-transition: the page vanishes the instant its dots take over. */
+  .scene.hidden-instant { opacity: 0 !important; transition: none !important; }
+
+  /* Landing straight on a scene URL: a tiny script stamps the scene path on
+     <html> before first paint, so the front door never flashes while the
+     heavy scripts below are still loading. */
+  html[data-scene] #stage { opacity: 0; pointer-events: none; }
+  /* A direct landing holds its page invisible until the engine is warm and
+     the arrival ceremony takes over (the boot script frees it if the heavy
+     scripts never arrive). */
+  html[data-arrive] .scene { opacity: 0 !important; transition: none !important; pointer-events: none !important; }
+  html[data-scene="/projects"] #projects-scene,
+  html[data-scene="/projects/exsa"] #file-exsa,
+  html[data-scene="/projects/table-23"] #file-table-23,
+  html[data-scene="/projects/homebase"] #file-homebase,
+  html[data-scene="/about-builder01"] #about-scene {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* a live dossier's dot glows and pulses like the card's */
+  .pstatus.live .pdot {
+    background: var(--core-hot);
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.9);
+    animation: dotpulse 2.2s ease-in-out infinite;
+  }
+
+  /* ----- the about node: a stray thought in the field's top-right -----
+     On desktop the animate loop wanders it around the quadrant while a
+     tether holds a passing particle; on mobile it sits quietly under the
+     chrome band instead, a plain link. */
+  #about-node {
+    position: absolute;
+    /* the fallback spot (pre-JS and reduced motion) sits in the negative
+       space between the subtitle and the sphere's crown */
+    top: 15.5vh;
+    right: 6vw;
+    pointer-events: auto;
+    font-size: 0.6rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: lowercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+  }
+  #about-node:hover { color: var(--core-hot); text-shadow: 0 0 12px rgba(74, 222, 128, 0.4); }
+  @media (min-width: 1100px) {
+    /* the wander loop owns left/top here; right must let go or the
+       element would stretch between the two edges. The starting spot
+       matches the wander's centre so nothing jumps on the first frame. */
+    #about-node { right: auto; left: 70vw; top: 24vh; }
+  }
+
+  /* case-file scenes reuse the dossier styling */
+  .pstatus {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    margin-top: 1.2em;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+    text-transform: lowercase;
+  }
+  .pstatus .pdot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--text-primary);
+    box-shadow: 0 0 6px rgba(214, 232, 221, 0.6);
+  }
+
+  .section { margin-top: 3rem; }
+  .section h2 {
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .section h2::before {
+    content: "";
+    display: inline-block;
+    width: 1.4em;
+    height: 1px;
+    background: var(--core-hot);
+    opacity: 0.65;
+    margin-right: 0.8em;
+    vertical-align: middle;
+  }
+  .section p, .section li {
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    line-height: 1.9;
+    color: var(--text-body);
+    margin-top: 1em;
+  }
+  .section ul { list-style: none; }
+  .section li { padding-left: 1.2em; position: relative; }
+  .section li::before { content: "·"; position: absolute; left: 0; color: var(--core-hot); }
+
+  .pback.ptop { display: block; margin: 0 0 2rem 0; }
+
+  /* the open channel's audience lead-ins, in the kicker's register */
+  .plead {
+    color: var(--text-muted);
+    letter-spacing: 0.25em;
+    text-transform: lowercase;
+    margin-right: 0.5em;
+  }
+
+  /* "About" sits above the exhaled headline and arrives with the body
+     reveal, deliberately plain against the particle-formed Builder01 */
+  .pabove {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 1.05rem;
+    letter-spacing: 0.55em;
+    text-indent: 0.55em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 1.6em;
+  }
+
+  /* the dossier sheet: one continuous glass panel, same family as the cards */
+  /* the sheet is a feathered pool of dark, no cut edge against the field */
+  .sheet {
+    position: relative;
+    padding: 2rem 1.6rem 2.5rem;
+  }
+  .sheet::before {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    z-index: -1;
+    background: rgba(1, 8, 5, 0.86);
+    border-radius: 28px;
+    filter: blur(28px);
+  }
+  /* dossier titles hold to one line */
+  .sheet h1 {
+    font-size: clamp(1.35rem, 4.5vw, 2rem);
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    white-space: nowrap;
+  }
+  .sheet .section:first-of-type { margin-top: 2.2rem; }
+
+  /* exhibits rail scaffolding: activates when a file gains .has-exhibits */
+  @media (min-width: 1100px) {
+    .pwrap.has-exhibits {
+      max-width: none;
+      margin: 0;
+      /* the sheet's right edge (feather included) lands at screen centre */
+      padding-left: max(1.5rem, calc(50vw - 34rem));
+      padding-right: 4vw;
+      display: grid;
+      grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+      column-gap: 4rem;
+      align-items: start;
+    }
+    .pwrap.has-exhibits > .ptop, .pwrap.has-exhibits > .pback:last-child { grid-column: 1 / -1; }
+    .exhibits { position: sticky; top: 60px; margin-top: 0; }
+    /* the plate sits in the sphere's lower flank, clear of the crown;
+       the drift loop nudges left/top around this resting spot */
+    .exhibits .exhibit { width: min(23vw, 26rem); margin-top: 44vh; margin-left: 1.5vw; }
+  }
+
+  .pwrap { max-width: 34rem; margin: 0 auto; padding: 13vh 1.5rem 10vh; }
+
+  .pkicker {
+    font-size: 0.6rem;
+    letter-spacing: 0.35em;
+    color: var(--text-muted);
+    text-transform: lowercase;
+  }
+
+  .scene h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+    color: var(--text-primary);
+  }
+
+  .ptagline {
+    margin-top: 1.4em;
+    font-size: 0.72rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    line-height: 1.9;
+    color: var(--text-body);
+  }
+
+  .plist { margin-top: 3rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .entry {
+    position: relative;
+    display: block;
+    border: 1px solid var(--text-dim);
+    padding: 1.4rem 1.6rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    background: rgba(1, 8, 5, 0.82);
+    transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+    overflow: hidden;
+  }
+  a.entry:hover, a.entry:active {
+    border-color: var(--core-hot);
+    transform: translateY(-2px);
+    animation: borderpulse 1.8s ease-in-out infinite;
+  }
+  @keyframes borderpulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(74, 222, 128, 0.10), inset 0 0 8px rgba(74, 222, 128, 0.04); }
+    50% { box-shadow: 0 0 30px rgba(74, 222, 128, 0.30), inset 0 0 20px rgba(74, 222, 128, 0.09); }
+  }
+
+  .entry .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+  }
+  .status { display: inline-flex; align-items: center; gap: 0.6em; text-transform: lowercase; }
+  .status .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--core-hot);
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.9);
+    animation: dotpulse 2.2s ease-in-out infinite;
+  }
+  @keyframes dotpulse { 50% { opacity: 0.25; box-shadow: 0 0 2px rgba(74, 222, 128, 0.4); } }
+  .status.lab .dot { background: #eab308; box-shadow: 0 0 8px rgba(234, 179, 8, 0.9); }
+  .status.private .dot { background: var(--text-primary); box-shadow: 0 0 6px rgba(214, 232, 221, 0.6); animation: none; }
+
+  .entry .name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 1.35rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 0.6em;
+  }
+  a.entry:hover .name { color: var(--core-warm); text-shadow: 0 0 16px rgba(74, 222, 128, 0.35); }
+
+  .entry .desc {
+    font-size: 0.72rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: var(--text-body);
+    margin-top: 0.9em;
+    line-height: 1.9;
+  }
+
+  .mail {
+    color: var(--core-hot);
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(74, 222, 128, 0.45);
+    overflow-wrap: anywhere;
+    transition: color 0.3s ease, text-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .mail:hover { color: var(--core-warm); text-shadow: 0 0 10px rgba(74, 222, 128, 0.45); border-bottom-color: var(--core-hot); }
+
+  .entry .go {
+    margin-top: 1.2em;
+    text-align: right;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: lowercase;
+    color: var(--text-muted);
+    transition: color 0.4s ease;
+  }
+  .entry .go .arr { display: inline-block; transition: transform 0.4s ease; }
+  a.entry:hover .go { color: var(--core-hot); }
+  a.entry:hover .go .arr { transform: translate(0.35em, 0); }
+
+  .redact { background: var(--text-dim); color: transparent; border-radius: 2px; user-select: none; }
+  .entry.soon { border-style: dashed; cursor: default; }
+  .entry.soon .name { color: var(--text-dim); }
+  .entry.soon .go { color: var(--text-dim); }
+
+  .pback {
+    display: inline-block;
+    margin-top: 3.5rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: lowercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+  }
+  .pback:hover { color: var(--core-hot); text-shadow: 0 0 12px rgba(74, 222, 128, 0.4); }
+
+  /* ----- exhibits: a live capture mounted on each case file -----
+     The plate borrows the cards' glass and their hover glow, turned up:
+     the exhibit is the one thing on a dossier allowed to advertise
+     itself. Desktop floats it in the field's clear air on its own
+     tether; below 1100px it mounts quietly after the closing section. */
+  .exhibits { margin-top: 2.5rem; }
+  .exhibit {
+    margin: 0;
+    position: relative;
+    padding: 0.55rem;
+    background: rgba(1, 8, 5, 0.82);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    animation: exhibitpulse 2.6s ease-in-out infinite;
+  }
+  .exhibit img { display: block; width: 100%; height: auto; }
+  @keyframes exhibitpulse {
+    0%, 100% { box-shadow: 0 0 16px rgba(74, 222, 128, 0.16), inset 0 0 10px rgba(74, 222, 128, 0.05); border-color: rgba(74, 222, 128, 0.4); }
+    50% { box-shadow: 0 0 44px rgba(74, 222, 128, 0.45), inset 0 0 24px rgba(74, 222, 128, 0.12); border-color: rgba(74, 222, 128, 0.9); }
+  }
+  /* the live link, in the about node's register but wearing the core's
+     colour: it is a door, not a label */
+  .exhibit-link {
+    display: inline-block;
+    margin-top: 1.1rem;
+    font-size: 0.62rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: lowercase;
+    color: var(--core-hot);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+  }
+  .exhibit-link:hover { color: var(--core-warm); text-shadow: 0 0 12px rgba(74, 222, 128, 0.5); }
+  /* Desktop floats each dossier's live link over the field's crown; the
+     drift loop owns left/top there, this is the pre-JS and reduced-motion
+     spot. Below 1100px the inline copy inside .exhibits serves instead. */
+  .link-node { display: none; }
+  @media (min-width: 1100px) {
+    .link-node { display: inline-block; position: fixed; left: 58vw; top: 21vh; margin-top: 0; }
+    .exhibits > .exhibit-link { display: none; }
+  }
+
+  /* ----- projects index on desktop: the constellation -----
+     The field keeps the middle of the screen and the four files flank it
+     as tethered nodes, two a side. The right pair rides lower so the ring
+     reads as an orbit, not a table. Mobile keeps the single column. */
+  @media (min-width: 1100px) {
+    #projects-scene .pwrap {
+      max-width: 88rem;
+      padding: 6vh 4vw 4vh;
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    #projects-scene .pkicker,
+    #projects-scene h1,
+    #projects-scene .ptagline { text-align: center; }
+    #projects-scene .ptagline { max-width: 34rem; margin-left: auto; margin-right: auto; }
+    #projects-scene .plist {
+      margin-top: 2.75rem;
+      display: grid;
+      grid-template-columns: minmax(0, 23rem) minmax(10rem, 1fr) minmax(0, 23rem);
+      row-gap: 1.75rem;
+      /* the lowered right column needs landing room above the back link */
+      padding-bottom: 3rem;
+    }
+    #projects-scene .entry:nth-child(1) { grid-column: 1; grid-row: 1; }
+    #projects-scene .entry:nth-child(2) { grid-column: 1; grid-row: 2; }
+    #projects-scene .entry:nth-child(3) { grid-column: 3; grid-row: 1; }
+    #projects-scene .entry:nth-child(4) { grid-column: 3; grid-row: 2; }
+    /* offset via top, not transform, so the arrival reveal and the hover
+       lift (both of which own the transform) never fight the stagger */
+    #projects-scene .entry:nth-child(3),
+    #projects-scene .entry:nth-child(4) { top: 4rem; }
+    /* the tethers to the field are drawn live on the #tether canvas */
+    #projects-scene .pback { justify-self: center; margin-top: 1rem; }
+  }
+
+  /* ----- about builder01 on desktop: the mirror of a case file -----
+     The sheet keeps the right-hand column and the field drifts left
+     into the clear air (the case files do the same, the other way). */
+  @media (min-width: 1100px) {
+    #about-scene .pwrap {
+      max-width: none;
+      margin: 0;
+      padding-left: 4vw;
+      /* the sheet's left edge (feather included) lands at screen centre */
+      padding-right: max(1.5rem, calc(50vw - 34rem));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
+      column-gap: 4rem;
+      align-items: start;
+    }
+    #about-scene .pwrap > * { grid-column: 2; }
+  }
+</style>
+<script>
+  // Refreshing or sharing a scene URL: mark <html> before anything paints,
+  // so the CSS above holds the right scene up while the big scripts at the
+  // bottom of the page are still on their way. The router syncs this later.
+  (function () {
+    const p = location.pathname.replace(/\/$/, '');
+    if (p === '/projects' || p === '/projects/exsa' || p === '/projects/table-23' || p === '/projects/homebase' || p === '/about-builder01') {
+      document.documentElement.dataset.scene = p;
+      // Direct landings replay the arrival ceremony once the engine is
+      // warm; hold the page back so its text never shows before the dots
+      // that form it. The timeout frees the page if the heavy scripts
+      // never arrive, so it can never be stuck invisible.
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.dataset.arrive = '';
+        setTimeout(function () { delete document.documentElement.dataset.arrive; }, 3500);
+      }
+    }
+  })();
+</script>
+</head>
+<body>
+
+<div id="canvas-wrap"></div>
+
+<div class="chrome top"><span>singapore</span><span>est. 2026</span></div>
+<div class="chrome bottom"><span>jared chan</span><span></span></div>
+
+<div id="stage">
+  <div class="header">
+    <div class="title" data-text="J.A.R.E.D">J.A.R.E.D</div>
+    <div class="subtitle" data-text="Just Another Really Exhausted Dude">Just Another Really Exhausted Dude</div>
+  </div>
+
+  <div class="footer">
+    <a class="cta" href="/projects">Enter</a>
+  </div>
+
+  <a id="about-node" href="/about-builder01" data-scene-link data-text="about builder01">about builder01</a>
+</div>
+
+<div class="scene" id="projects-scene">
+  <div class="pwrap">
+    <div class="pkicker">jared // index :: 3 nodes online</div>
+    <h1 data-text="Projects">Projects</h1>
+    <p class="ptagline">Want a custom-built solution? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
+
+    <div class="plist">
+      <a class="entry" href="/projects/exsa" data-scene-link>
+        <div class="top">
+          <span>PROJECT 01</span>
+          <span class="status private"><span class="dot"></span>deployed · redacted</span>
+        </div>
+        <div class="name" data-text="EXSA Portal">EXSA Portal</div>
+        <div class="desc">Singapore's national F&amp;B service training &amp; awards, in one portal. Hundreds of spreadsheets, thousands of manual steps &amp; data entries, retired.</div>
+        <div class="go">open <span class="arr">→</span></div>
+      </a>
+
+      <a class="entry" href="/projects/table-23" data-scene-link>
+        <div class="top">
+          <span>PROJECT 02</span>
+          <span class="status private"><span class="dot"></span>deployed · redacted</span>
+        </div>
+        <div class="name" data-text="Table 23">Table 23</div>
+        <div class="desc">Bespoke, invitation-only retreat app for senior F&amp;B leadership. AI assisted working sessions, synthesised discussion topics from user-generated contributions.</div>
+        <div class="go">open <span class="arr">→</span></div>
+      </a>
+
+      <a class="entry" href="/projects/homebase" data-scene-link>
+        <div class="top">
+          <span>PROJECT 03</span>
+          <span class="status live"><span class="dot"></span>live</span>
+        </div>
+        <div class="name" data-text="Homebase">Homebase</div>
+        <div class="desc">A family's shared space. Who's got the kids, what's on, what needs doing: schedules, cover and dinner in one calm feed with an integrated butler.</div>
+        <div class="go">open <span class="arr">→</span></div>
+      </a>
+
+      <div class="entry soon">
+        <div class="top">
+          <span>PROJECT 04</span>
+          <span class="status lab"><span class="dot"></span>in the lab</span>
+        </div>
+        <div class="name" data-text="Classified">Classified</div>
+        <div class="desc">The next build is taking shape.<br>Scope:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="redact" aria-label="redacted">redacted</span><br>Ship date:&nbsp;<span class="redact" aria-label="redacted">redacted</span></div>
+        <div class="go">clearance required</div>
+      </div>
+    </div>
+
+    <a class="pback" href="/" data-scene-link>← back to the field</a>
+  </div>
+</div>
+
+<div class="scene" id="file-exsa">
+  <div class="pwrap has-exhibits">
+    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
+    <div class="sheet">
+    <div class="pkicker">jared // project 01</div>
+    <h1>EXSA Portal</h1>
+    <div class="pstatus"><span class="pdot"></span>deployed · redacted</div>
+
+    <div class="section">
+      <h2>The brief</h2>
+      <p>Digitise the Excellent Service Awards: Singapore's national service training and awards programme for the F&amp;B sector, run by the Restaurant Association of Singapore and used daily by member companies.</p>
+    </div>
+
+    <div class="section">
+      <h2>What it replaced</h2>
+      <p>A fully manual back office. Thousands of nominations, training schedules, attendance and award tracking lived in spreadsheets, email threads and phone calls between staff and hundreds of companies.</p>
+    </div>
+
+    <div class="section">
+      <h2>How it works</h2>
+      <ul>
+        <li>Company reps get self-service nominations and scheduling, built for phones in service corridors, not desks.</li>
+        <li>Shipped incrementally against real programme deadlines, from zero to a live multi-role platform.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>The machinery</h2>
+      <ul>
+        <li>Auth layer</li>
+        <li>Role-based access</li>
+        <li>Audit trail</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>What this proves</h2>
+      <p>That an operation drowning in spreadsheets can become one calm portal, without the humans losing the wheel.</p>
+      <p>Want one built for your operation? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
+    </div>
+    </div>
+
+    <div class="exhibits">
+      <figure class="exhibit">
+        <img src="/exhibit-exsa-v3.png" alt="EXSA Portal dashboard" width="878" height="519" loading="lazy" decoding="async">
+      </figure>
+      <a class="exhibit-link" href="https://ras-exsa-training.web.app" target="_blank" rel="noopener">ras-exsa-training.web.app</a>
+    </div>
+
+    <a class="pback" href="/projects" data-scene-link>← all projects</a>
+  </div>
+
+  <a class="exhibit-link link-node" href="https://ras-exsa-training.web.app" target="_blank" rel="noopener" data-text="ras-exsa-training.web.app">ras-exsa-training.web.app</a>
+</div>
+
+<div class="scene" id="file-table-23">
+  <div class="pwrap has-exhibits">
+    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
+    <div class="sheet">
+    <div class="pkicker">jared // project 02</div>
+    <h1>Table 23</h1>
+    <div class="pstatus"><span class="pdot"></span>deployed · redacted</div>
+
+    <div class="section">
+      <h2>The brief</h2>
+      <p>A private, invitation-only companion app for a leadership retreat: 25 senior F&amp;B leaders, three days in Saigon. Designed end to end like a flagship consumer app, not just an internal tool.</p>
+    </div>
+
+    <div class="section">
+      <h2>What it replaced</h2>
+      <p>The WhatsApp group, the PDF itinerary, toggling across multiple apps, the email chains, the photo dump and the flip chart. One calm surface that knows what day it is and changes shape as the trip unfolds.</p>
+    </div>
+
+    <div class="section">
+      <h2>How it works</h2>
+      <ul>
+        <li>AI as infrastructure, not a gimmick: server-side agents with real governance. A narrow concierge for guests, a strategy curator for organisers.</li>
+        <li>Synthesis is schema-validated and cites real contributions. Every call logged, nothing client-side.</li>
+        <li>Product restraint throughout: no group chats, no toggling across multiple channels, tastefully designed, phased access.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>The machinery</h2>
+      <ul>
+        <li>Auth with an allow-list</li>
+        <li>Governed agents</li>
+        <li>Phase-triggered content</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>What this proves</h2>
+      <p>That a tool for 25 people deserves the same finish as one for thousands. Small, bespoke, fast, without cutting the corners that matter.</p>
+      <p>Want one built for your operation? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
+    </div>
+    </div>
+
+    <div class="exhibits">
+      <figure class="exhibit">
+        <img src="/exhibit-table-23-v3.png" alt="Table 23 home screen" width="878" height="519" loading="lazy" decoding="async">
+      </figure>
+      <a class="exhibit-link" href="https://ras-table-23.web.app" target="_blank" rel="noopener">ras-table-23.web.app</a>
+    </div>
+
+    <a class="pback" href="/projects" data-scene-link>← all projects</a>
+  </div>
+
+  <a class="exhibit-link link-node" href="https://ras-table-23.web.app" target="_blank" rel="noopener" data-text="ras-table-23.web.app">ras-table-23.web.app</a>
+</div>
+
+<div class="scene" id="file-homebase">
+  <div class="pwrap has-exhibits">
+    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
+    <div class="sheet">
+    <div class="pkicker">jared // project 03</div>
+    <h1>Homebase</h1>
+    <div class="pstatus live"><span class="pdot"></span>live · onboard now</div>
+
+    <div class="section">
+      <h2>The brief</h2>
+      <p>One calm shared space for a family's logistics: who's got the kids, what's on tonight, what needs someone. Phone-first, grandparent-proof, and glanceable from a school gate.</p>
+    </div>
+
+    <div class="section">
+      <h2>What it replaced</h2>
+      <p>The WhatsApp scroll. Pickups negotiated across a hundred-message thread, dinner plans buried, cover requests lost between the memes. The chat never answered anything at a glance; now a glance is all it takes.</p>
+    </div>
+
+    <div class="section">
+      <h2>How it works</h2>
+      <ul>
+        <li>Per-child schedules, recurring and one-off, with a coverage roster that knows which grandparent has Thursday.</li>
+        <li>An integrated Telegram butler nudges the right person at the right moment: cover requests, pick-ups, dinner changes.</li>
+        <li>Multiple tiers of access: everyone sees exactly what they need to, and nothing they don't. Confusion never makes the roster.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>The machinery</h2>
+      <ul>
+        <li>Auth with an allow-list</li>
+        <li>Server-side bot</li>
+        <li>Tiered permissions</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>What this proves</h2>
+      <p>That family logistics is an operations problem in pyjamas, and it deserves real software. Built for one household and designed for any: members, tiers and routines are data, not hardcode. All so everyone can be in the room, mind and body, instead of in the thread.</p>
+      <p>Want Homebase for your household? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
+    </div>
+    </div>
+
+    <div class="exhibits">
+      <figure class="exhibit">
+        <img src="/exhibit-homebase-v3.png" alt="Homebase sign-in" width="880" height="519" loading="lazy" decoding="async">
+      </figure>
+      <a class="exhibit-link" href="https://chan-teo.com" target="_blank" rel="noopener">chan-teo.com</a>
+    </div>
+
+    <a class="pback" href="/projects" data-scene-link>← all projects</a>
+  </div>
+
+  <a class="exhibit-link link-node" href="https://chan-teo.com" target="_blank" rel="noopener" data-text="chan-teo.com">chan-teo.com</a>
+</div>
+
+<div class="scene" id="about-scene">
+  <div class="pwrap">
+    <a class="pback ptop" href="/" data-scene-link>← back to the field</a>
+    <div class="sheet">
+    <div class="pkicker">jared // node zero</div>
+    <div class="pabove">About</div>
+    <h1>Builder01</h1>
+    <div class="pstatus"><span class="pdot"></span>accepting requests</div>
+
+    <div class="section">
+      <h2>The short version</h2>
+      <p>Builder01 is the designation Jared ships under. Yes, the Really Exhausted Dude from the front door. This dude works with you end to end: the listening, the designing, the shipping, and the unglamorous stretch after shipping where it has to actually work. You arrive with the problem that is quietly eating your week. You leave without it.</p>
+    </div>
+
+    <div class="section">
+      <h2>What gets built</h2>
+      <ul>
+        <li>Custom tools for operations that have outgrown their spreadsheets: portals, workflows, dashboards, the quiet plumbing that holds a programme together.</li>
+        <li>The range runs from a small tool shipped in days to multi-role platforms run against national deadlines. Straightforward problems stay straightforward; complicated ones get made to look it.</li>
+        <li>AI where it earns its keep: agents with real governance, synthesis that cites its sources. Never a chatbot bolted on for show.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>How it gets built</h2>
+      <ul>
+        <li>Simplicity over cleverness. If a solution feels complicated, it is the wrong one.</li>
+        <li>Humans keep the wheel. The software surfaces, suggests and logs; a person decides. Nothing consequential happens on autopilot.</li>
+        <li>Small does not mean rough. A tool for 10 people gets the same finish as one for thousands and beyond.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>The evidence</h2>
+      <p>Talk is cheap; deployments are on file. <span id="evidence-counts">Two redacted projects, one live app, and one classified build in the lab.</span> Inspect them in the <a class="mail" href="/projects" data-scene-link>projects</a> index.</p>
+    </div>
+
+    <div class="section">
+      <h2>Open channel</h2>
+      <p><span class="plead">for clients ::</span> Describe the problem, plainly. No brief too small, and the tangled ones are the fun ones. Chaotic spreadsheets welcome.</p>
+      <p><span class="plead">join the colony ::</span> The field has room for more residents. Builders, designers, fellow obsessives: this is an open call. Bring one thing you made and cared about; titles optional, craft not.</p>
+      <p>The line is open at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
+    </div>
+    </div>
+
+    <a class="pback" href="/" data-scene-link>← back to the field</a>
+  </div>
+</div>
+
+<canvas id="tether"></canvas>
+<canvas id="fx"></canvas>
+
+<!-- Pinned versions with integrity hashes: if a CDN ever served something
+     tampered, the browser refuses it instead of running it. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous"></script>
+<!-- Post-processing add-ons for the bloom pass; they attach to the global THREE. -->
+<script src="https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js" integrity="sha384-nhO9toQuMo5osCuA0l+YFpSqscZWxDu251Bnho2gD3kSPv1neEwHg0LyEmrA+mPj" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js" integrity="sha384-mY+ii969jnDCI2HjRHftH2NZVkIO5ZGUkcnGCg3oVJ3kVstWQXwerYWBg+nbUG4R" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js" integrity="sha384-GkidzTYmQg24v13sa3xhBBbvOLbVLO1QxfyKLdOWweQqNqS/iWwUst2T1fER2Xrg" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/MaskPass.js" integrity="sha384-pG/SGpuNNuluvSd84K35qyRFdMxn8P8MyqIQuxjUb0wPPRgJ7yDLRQT64nLuT8CR" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js" integrity="sha384-2EpLreWSFuZsk4hcSplXLhlHd/wzvDNF907bTGIXSXM0SlhJNzy4YK0DhBFvkFEs" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js" integrity="sha384-I3lsvPeDJYFrEAzn/TA0yhc/SCYKwpyfyq8lKzHYKohu43H9f7xc/Q9ZWgSVUDl3" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js" integrity="sha384-aVQ2QnWkoxhOefDB0YZB64OPVzujvccydpcC7UqMDJUK0ChwA382zOHmrWHGDRRa" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/shaders/AfterimageShader.js" integrity="sha384-pDIdF8PB6t3+WnvxzwIbSfdR3DnEeU9ui2VPqJKrn7aBGQCcKnTFcZrQpCNG7f87" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/AfterimagePass.js" integrity="sha384-ed4ycMn6E4vg2xMw/a5+V4ZOzDTo1EdavLlXm4AdSKRefkBehf4s1Kfe1zCNhxNb" crossorigin="anonymous"></script>
+<script>
+  // ============================================================
+  // THE CONDUIT — cover page
+  // particle sphere + neural mesh, ambient breathing, interactive
+  // ============================================================
+
+  const wrap = document.getElementById('canvas-wrap');
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0, 0, 3.6);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  wrap.appendChild(renderer.domElement);
+
+  function resize() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Bloom pass: the bright core and lines spill light like a real source.
+  // If any add-on script failed to load we quietly fall back to plain render.
+  let composer = null, bloomPass = null, trailPass = null;
+  if (THREE.EffectComposer && THREE.RenderPass && THREE.UnrealBloomPass) {
+    composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    // Each frame keeps a fading ghost of the last: a whisper of a trail
+    // while the dots drift, long light streaks when they stream on Enter.
+    // Sits before bloom so the trails glow too.
+    if (THREE.AfterimagePass) {
+      trailPass = new THREE.AfterimagePass(0.35);
+      composer.addPass(trailPass);
+    }
+    bloomPass = new THREE.UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.75,  // strength, breathes further in the animation loop
+      0.55,  // radius: soft spread
+      0.2    // threshold: only the bright bits bloom
+    );
+    composer.addPass(bloomPass);
+    composer.setSize(window.innerWidth, window.innerHeight);
+    window.addEventListener('resize', () =>
+      composer.setSize(window.innerWidth, window.innerHeight)
+    );
+  }
+
+  // ----- interaction state -----
+  const interaction = {
+    userRotX: 0, userRotY: 0,
+    velX: 0, velY: 0,
+    cameraDistance: 3.6, targetDistance: 3.6,
+    pulseAmount: 0,
+    isDragging: false,
+    lastX: 0, lastY: 0,
+    downTime: 0, dragTotal: 0,
+  };
+  const MIN_ZOOM = 2.2, MAX_ZOOM = 12;
+  const clampZoom = (d) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, d));
+
+  // The original 3.6 camera distance suits a wide desktop screen; on a
+  // portrait phone the sphere spills off both edges. Pull the camera back
+  // just enough for the whole sphere to sit inside the narrower axis.
+  function fitDistance() {
+    const aspect = window.innerWidth / window.innerHeight;
+    const tanV = Math.tan((camera.fov * Math.PI / 180) / 2);
+    const tanH = tanV * aspect;
+    const RADIUS = 1.55; // sphere plus its breathing headroom
+    // The title above and the Enter button below need vertical headroom, so
+    // the sphere may fill less of the height (62%) than the width (88%).
+    // Whichever axis demands the farther camera wins.
+    const forWidth = (RADIUS / 0.88) / tanH;
+    const forHeight = (RADIUS / 0.62) / tanV;
+    return clampZoom(Math.max(forWidth, forHeight));
+  }
+  let userZoomed = false;
+  interaction.cameraDistance = interaction.targetDistance = fitDistance();
+  window.addEventListener('resize', () => {
+    if (!userZoomed) interaction.targetDistance = fitDistance();
+  });
+
+  renderer.domElement.style.touchAction = 'none';
+  renderer.domElement.style.cursor = 'grab';
+
+  // Live pointers on the canvas; two at once is a pinch, which zooms
+  // instead of rotating.
+  const pointers = new Map();
+  let pinchLast = 0;
+  let didPinch = false;
+
+  function pinchGap() {
+    const [a, b] = [...pointers.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { renderer.domElement.setPointerCapture(e.pointerId); } catch (err) {}
+
+    if (pointers.size === 2) {
+      interaction.isDragging = false;
+      didPinch = true;
+      pinchLast = pinchGap();
+      return;
+    }
+
+    didPinch = false;
+    interaction.isDragging = true;
+    interaction.lastX = e.clientX;
+    interaction.lastY = e.clientY;
+    interaction.downTime = performance.now();
+    interaction.dragTotal = 0;
+    interaction.velX = 0;
+    interaction.velY = 0;
+    renderer.domElement.style.cursor = 'grabbing';
+  });
+
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size === 2) {
+      const gap = pinchGap();
+      if (pinchLast > 0 && gap > 0) {
+        userZoomed = true;
+        // Fingers moving apart shrinks the camera distance (zoom in).
+        interaction.targetDistance = clampZoom(interaction.targetDistance * (pinchLast / gap));
+      }
+      pinchLast = gap;
+      return;
+    }
+
+    if (!interaction.isDragging) return;
+    const dx = e.clientX - interaction.lastX;
+    const dy = e.clientY - interaction.lastY;
+    interaction.lastX = e.clientX;
+    interaction.lastY = e.clientY;
+    interaction.dragTotal += Math.abs(dx) + Math.abs(dy);
+
+    dragEuler.set(dy * 0.006, dx * 0.006, 0);
+    dragQuat.setFromEuler(dragEuler);
+    userSpin.premultiply(dragQuat);
+
+    const instVelY = dx * 0.006 * 60;
+    const instVelX = dy * 0.006 * 60;
+    interaction.velY += (instVelY - interaction.velY) * 0.35;
+    interaction.velX += (instVelX - interaction.velX) * 0.35;
+  });
+
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+
+    if (pointers.size === 1) {
+      // A pinch just lost one finger; hand the survivor over to dragging
+      // from its current spot so the sphere does not jump.
+      const [p] = [...pointers.values()];
+      interaction.lastX = p.x;
+      interaction.lastY = p.y;
+      interaction.isDragging = true;
+      interaction.dragTotal = 999; // a pinch remnant is never a tap
+      return;
+    }
+
+    if (!interaction.isDragging) return;
+    interaction.isDragging = false;
+    renderer.domElement.style.cursor = 'grab';
+    const elapsed = performance.now() - interaction.downTime;
+    if (!didPinch && elapsed < 280 && interaction.dragTotal < 12) {
+      interaction.pulseAmount = 1.0;
+    }
+  }
+  renderer.domElement.addEventListener('pointerup', endPointer);
+  renderer.domElement.addEventListener('pointercancel', endPointer);
+
+  renderer.domElement.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    userZoomed = true;
+    const factor = e.deltaY > 0 ? 1.08 : 0.92;
+    interaction.targetDistance = clampZoom(interaction.targetDistance * factor);
+  }, { passive: false });
+
+  // ----- warp: Enter dives into the core before the page turns -----
+  const warp = { active: false, t0: 0, from: 0 };
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cta = document.querySelector('.cta');
+  cta.addEventListener('click', (e) => {
+    if (reducedMotion) return; // plain navigation, no dive
+    e.preventDefault();
+    if (warp.active) return;
+    warp.active = true;
+    warp.t0 = performance.now();
+    warp.from = interaction.cameraDistance;
+    document.body.classList.add('warping');
+    // The full dive plays out, then the index condenses from the swollen
+    // web. The nucleus only dims slightly during the dive (see dimNow);
+    // its real fade rides the dispersal, so the orb reads as spending its
+    // own matter on the page. The URL still becomes /projects so refresh
+    // and sharing keep working.
+    setTimeout(() => { if (warp.active) openProjects(); }, 1100);
+  });
+
+  // Matter-transition state lives up here because the router below checks
+  // it; the machinery itself is defined further down.
+  const fx = { active: false, startT: 0, raf: 0, raf2: 0, timers: [], pendingPath: null, internalNav: false };
+
+  // ----- continuous world router: field, index, and case files -----
+  let sceneDim = 0; // eases toward 1 while any scene is up
+  const SCENES = {
+    '/projects': document.getElementById('projects-scene'),
+    '/projects/exsa': document.getElementById('file-exsa'),
+    '/projects/table-23': document.getElementById('file-table-23'),
+    '/projects/homebase': document.getElementById('file-homebase'),
+    '/about-builder01': document.getElementById('about-scene'),
+  };
+  const SCENE_TITLES = {
+    '/projects': 'J.A.R.E.D :: projects',
+    '/projects/exsa': 'J.A.R.E.D :: EXSA Portal',
+    '/projects/table-23': 'J.A.R.E.D :: Table 23',
+    '/projects/homebase': 'J.A.R.E.D :: Homebase',
+    '/about-builder01': 'J.A.R.E.D :: about Builder01',
+  };
+  let scenePath = null; // null = the field
+
+  function showScene(path, push) {
+    // Navigating by any other route (back button, skip tap) while a matter
+    // transition is mid-flight cancels it and restores a settled page.
+    if (fx.active && !fx.internalNav) fxAbort();
+    const cameFromScene = scenePath !== null;
+    for (const el of Object.values(SCENES)) el.classList.remove('open');
+    scenePath = path;
+    if (path) {
+      const el = SCENES[path];
+      el.scrollTop = 0; // always arrive at the top
+      el.classList.add('open');
+      document.body.classList.add('in-scene');
+    } else {
+      document.body.classList.remove('in-scene');
+      // Returning to the field replays its welcome, same as a fresh arrival.
+      if (cameFromScene) decryptField();
+    }
+    // Keep the pre-paint boot flag on <html> honest, so its CSS rules and
+    // the router never disagree about which scene is up.
+    if (path) document.documentElement.dataset.scene = path;
+    else delete document.documentElement.dataset.scene;
+    // A matter transition builds the index itself, so it skips the decrypt.
+    if (path === '/projects' && !fx.internalNav) decryptIndex();
+    document.title = path ? SCENE_TITLES[path] : 'J.A.R.E.D';
+    try {
+      if (push) history.pushState({ p: path }, '', path || '/');
+      else history.replaceState({ p: path }, '', path || '/');
+    } catch (err) {}
+  }
+
+  function routeTo(pathname, push) {
+    const p = pathname.replace(/\/$/, '');
+    showScene(SCENES[p] ? p : null, push);
+  }
+
+  // The index always arrives the same way, whatever the route in: the
+  // sphere exhales the whole page, dots landing on every character and
+  // card border, the exact reverse of the exit dissolve.
+  function assembleProjects() {
+    fx.active = true;
+    fx.startT = performance.now();
+    fx.pendingPath = '/projects';
+    const el = SCENES['/projects'];
+    el.classList.add('hidden-instant');
+    // One frame for layout to settle before sampling the dot targets.
+    requestAnimationFrame(() => {
+      if (!fx.active) { el.classList.remove('hidden-instant'); return; }
+      playAssemble(el, () => { fx.active = false; fx.pendingPath = null; });
+    });
+  }
+
+  function openProjects(push = true) {
+    warp.active = false; // hand the field back to ambient physics
+    document.body.classList.remove('warping');
+    if (reducedMotion) { showScene('/projects', push); return; }
+    fx.internalNav = true;
+    showScene('/projects', push);
+    fx.internalNav = false;
+    assembleProjects();
+  }
+
+  // The reverse gesture: whatever page is open dissolves into the sphere
+  // as it stands, and the front door simply returns around it.
+  function exitToField(push) {
+    const fromEl = SCENES[scenePath];
+    if (fx.active || reducedMotion || !fromEl) { showScene(null, push); return; }
+    fx.active = true;
+    fx.startT = performance.now();
+    fx.pendingPath = '/'; // a skip mid-flight lands on the field
+    if (push) { try { history.pushState({ p: null }, '', '/'); } catch (err) {} }
+    playDissolve(fromEl, () => {
+      fx.internalNav = true;
+      showScene(null, false);
+      fx.internalNav = false;
+      fx.pendingPath = null;
+      fromEl.classList.remove('hidden-instant');
+    }, () => { fx.active = false; });
+    fromEl.classList.add('hidden-instant');
+  }
+
+  // Links that move between scenes never reload the page.
+  document.querySelectorAll('[data-scene-link]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Mid-dive the field is already committed to /projects; the about
+      // node stays hittable while #stage fades, so ignore it the same way
+      // the CTA ignores a second Enter.
+      if (warp.active) return;
+      const href = a.getAttribute('href');
+      // Any hop between scenes gets the matter transition, in both
+      // directions; the field boundary gets its own dissolve-and-regather.
+      if (href === '/' && scenePath) {
+        exitToField(true);
+        return;
+      }
+      if (scenePath && SCENES[href] && href !== scenePath) {
+        matterHop(scenePath, href);
+        return;
+      }
+      // Stepping from the field straight into a scene (the about node):
+      // the sphere pays the page out, same ceremony as back/forward.
+      if (!scenePath && SCENES[href] && !reducedMotion) {
+        if (href === '/projects') { openProjects(); return; }
+        showScene(href, true);
+        arriveScene(href);
+        return;
+      }
+      showScene(href === '/' ? null : href, true);
+    });
+  });
+  window.addEventListener('popstate', () => {
+    // Back pressed mid-dive cancels the warp; the field simply stays.
+    if (warp.active) {
+      warp.active = false;
+      document.body.classList.remove('warping');
+    }
+    const p = location.pathname.replace(/\/$/, '');
+    const target = SCENES[p] ? p : null;
+    // Browser back/forward gets the same ceremonies as the in-page links.
+    if (!fx.active && !reducedMotion) {
+      if (scenePath) {
+        if (!target) { exitToField(false); return; }
+        if (target !== scenePath) { matterHop(scenePath, target, false); return; }
+      } else if (target) {
+        // Stepping from the field into a scene: the sphere pays it out.
+        if (target === '/projects') { openProjects(false); return; }
+        showScene(target, false);
+        arriveScene(target);
+        return;
+      }
+    }
+    routeTo(location.pathname, false);
+  });
+
+  // Landing directly on a scene URL (refresh, shared link): same world,
+  // and the same arrival ceremony as any other route in. Refreshing a
+  // page must never play less than navigating to it.
+  if (SCENES[location.pathname.replace(/\/$/, '')]) {
+    fx.internalNav = true;
+    routeTo(location.pathname, false);
+    fx.internalNav = false;
+    sceneDim = 1;
+    if (!reducedMotion) {
+      // Wait for the fonts and a few rendered frames before starting the
+      // clock: on a cold load the first frames are seconds long, and a
+      // wall-clock flight would elapse inside them, never painted. The
+      // boot flag keeps the page invisible while the engine warms up.
+      const landed = scenePath;
+      const warm = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+      warm.then(() => {
+        let frames = 0;
+        (function tick() {
+          if (scenePath !== landed || fx.active) { delete document.documentElement.dataset.arrive; return; }
+          if (++frames < 4) { requestAnimationFrame(tick); return; }
+          if (landed === '/projects') assembleProjects();
+          else arriveScene(landed);
+          delete document.documentElement.dataset.arrive;
+        })();
+      });
+    } else {
+      delete document.documentElement.dataset.arrive;
+    }
+  }
+
+  // Navigating back does not reload the page: the browser revives a frozen
+  // snapshot taken mid-dive (flash up, UI hidden, camera inside the core).
+  // Whenever the page is shown again, reset to a calm front door.
+  window.addEventListener('pageshow', (e) => {
+    if (!warp.active && !e.persisted) return;
+    warp.active = false;
+    warpDim = 0;
+    document.body.classList.remove('warping');
+    routeTo(location.pathname, false);
+    userZoomed = false;
+    interaction.cameraDistance = interaction.targetDistance = fitDistance();
+    interaction.velX = 0;
+    interaction.velY = 0;
+  });
+
+  // ----- headline decrypts in, same effect as the builds index -----
+  const GLYPHS = '#$%&*+<>=?@/\\|';
+  // totalFrames is shared between the two lines so they start AND finish
+  // together; the shorter line simply settles its letters at a slower rate.
+  function decrypt(el, delay, totalFrames) {
+    const final = el.dataset.text;
+    if (reducedMotion) { el.textContent = final; return; }
+    // Hold the line's space with blanks while waiting to start, so nothing
+    // below jumps up and gets pushed back down as the words settle.
+    el.textContent = ' '.repeat(final.length);
+    let frame = 0;
+    const start = performance.now() + delay;
+    function tick(nowT) {
+      if (nowT < start) { requestAnimationFrame(tick); return; }
+      frame++;
+      const settled = Math.floor((frame / totalFrames) * final.length);
+      let out = '';
+      for (let i = 0; i < final.length; i++) {
+        out += i < settled
+          ? final[i]
+          : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      el.textContent = out;
+      if (settled < final.length) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  // The evidence sentence counts the projects index itself, so adding or
+  // retiring a card updates the about page without anyone keeping watch.
+  function tallyEvidence() {
+    const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+    const num = (n) => words[n] || String(n);
+    let redacted = 0, live = 0, lab = 0;
+    SCENES['/projects'].querySelectorAll('.plist .entry').forEach((el) => {
+      if (el.querySelector('.status.lab')) lab++;
+      else if (el.querySelector('.status.live')) live++;
+      else if (el.querySelector('.status.private')) redacted++;
+    });
+    const parts = [];
+    if (redacted) parts.push(num(redacted) + ' redacted ' + (redacted === 1 ? 'project' : 'projects'));
+    if (live) parts.push(num(live) + ' live ' + (live === 1 ? 'app' : 'apps'));
+    if (lab) parts.push(num(lab) + ' classified ' + (lab === 1 ? 'build' : 'builds') + ' in the lab');
+    let s = parts.length > 1
+      ? parts.slice(0, -1).join(', ') + (parts.length > 2 ? ',' : '') + ' and ' + parts[parts.length - 1]
+      : (parts[0] || 'nothing yet, which is suspicious');
+    s = s.charAt(0).toUpperCase() + s.slice(1) + '.';
+    document.getElementById('evidence-counts').textContent = s;
+  }
+  tallyEvidence();
+
+  const titleEl = document.querySelector('.title');
+  const subtitleEl = document.querySelector('.subtitle');
+  const decryptFrames = Math.max(titleEl.dataset.text.length, subtitleEl.dataset.text.length) * 4;
+  const aboutNode = document.getElementById('about-node');
+  // The field greets you the same way on first load and on every return.
+  function decryptField() {
+    decrypt(titleEl, 300, decryptFrames);
+    decrypt(subtitleEl, 300, decryptFrames);
+    // The about node settles in a beat behind the title, a smaller thought.
+    decrypt(aboutNode, 700, aboutNode.dataset.text.length * 6);
+  }
+  decryptField();
+
+  // The projects index gets the same arrival every time it opens: the
+  // headline and every file name decrypt together.
+  function decryptIndex() {
+    const els = SCENES['/projects'].querySelectorAll('[data-text]');
+    els.forEach((el) => decrypt(el, 250, el.dataset.text.length * 10));
+  }
+
+  // ============================================================
+  // MATTER TRANSITIONS — clicking into a case file dissolves the
+  // index into the sphere; the sphere then pays the dossier title
+  // back out in dots while the body settles in from the top.
+  // ============================================================
+  const fxCanvas = document.getElementById('fx');
+  const fxCtx = fxCanvas.getContext('2d');
+  function fxResize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    fxCanvas.width = Math.floor(window.innerWidth * dpr);
+    fxCanvas.height = Math.floor(window.innerHeight * dpr);
+    fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  fxResize();
+  window.addEventListener('resize', fxResize);
+
+  function fxTimer(fn, ms) { fx.timers.push(setTimeout(fn, ms)); }
+  function fxWipe() { fxCtx.clearRect(0, 0, window.innerWidth, window.innerHeight); }
+
+  // Puts back everything a transition touched, whatever stage it died at.
+  function fxAbort() {
+    cancelAnimationFrame(fx.raf);
+    cancelAnimationFrame(fx.raf2);
+    fx.timers.forEach(clearTimeout);
+    fx.timers = [];
+    fxWipe();
+    Object.values(SCENES).forEach((el) => el.classList.remove('hidden-instant'));
+    document.querySelectorAll('.scene [style]').forEach((el) => { el.style.cssText = ''; });
+    // The assemble beat styles the scene element itself; clear that too.
+    document.querySelectorAll('.scene[style]').forEach((el) => { el.style.cssText = ''; });
+    fx.active = false;
+  }
+
+  // Any tap, key or scroll mid-transition jumps straight to the settled page.
+  function fxSkip(e) {
+    if (!fx.active) return;
+    // A trackpad back-swipe keeps emitting momentum wheel events after the
+    // navigation lands; don't let those instantly kill a fresh ceremony.
+    if (e && e.type === 'wheel' && performance.now() - fx.startT < 600) return;
+    const pending = fx.pendingPath;
+    fx.pendingPath = null;
+    fxAbort();
+    if (pending) {
+      fx.internalNav = true;
+      // The URL was already pushed at click time; '/' means the field.
+      showScene(pending === '/' ? null : pending, false);
+      fx.internalNav = false;
+    }
+  }
+  window.addEventListener('pointerdown', fxSkip);
+  window.addEventListener('wheel', fxSkip, { passive: true });
+  window.addEventListener('keydown', fxSkip);
+
+  function sphereScreenPos() {
+    const v = new THREE.Vector3(0, 0, 0).project(camera);
+    return { x: (v.x * 0.5 + 0.5) * window.innerWidth, y: (0.5 - v.y * 0.5) * window.innerHeight };
+  }
+
+  // One rectangle per rendered character, wrapping and fonts included.
+  function charRects(el, stride) {
+    const rects = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    let node, k = 0;
+    while ((node = walker.nextNode())) {
+      const text = node.textContent;
+      for (let i = 0; i < text.length; i++) {
+        if (text[i].trim() === '') continue;
+        if (k++ % stride) continue;
+        range.setStart(node, i);
+        range.setEnd(node, i + 1);
+        const r = range.getBoundingClientRect();
+        if (r.width && r.height) rects.push(r);
+      }
+    }
+    return rects;
+  }
+
+  // Every visible character of a scene becomes several dots, and each
+  // card sheds dots along its border. Works for the index and the files.
+  // An optional `only` selector narrows the sweep to one family of
+  // elements, so a single beat can pay out just the exhibits.
+  function collectSceneDots(sceneEl, only) {
+    const dots = [];
+    const vh = window.innerHeight;
+    sceneEl.querySelectorAll('.pkicker, .pabove, h1, .ptagline, .pstatus, .section h2, .section p, .section li, .entry .top, .entry .name, .entry .desc, .entry .go, .pback, .exhibit-link').forEach((el) => {
+      if (only && !el.closest(only)) return;
+      const box = el.getBoundingClientRect();
+      if (box.bottom < 0 || box.top > vh) return;
+      const big = el.matches('h1, .name');
+      const inEntry = !!el.closest('.entry');
+      charRects(el, 1).forEach((r) => {
+        if (r.bottom < 0 || r.top > vh) return;
+        // The cards shed roughly a fifth more dots than the rest.
+        let n = big ? 4 : 2;
+        if (inEntry && Math.random() < 0.2) n++;
+        for (let c = 0; c < n; c++) {
+          dots.push({
+            x: r.left + Math.random() * r.width,
+            y: r.top + Math.random() * r.height,
+            size: (big ? 1.8 : 1.2) * (0.7 + Math.random() * 0.8),
+          });
+        }
+      });
+    });
+    sceneEl.querySelectorAll('.entry, .exhibit').forEach((el) => {
+      if (only && !el.closest(only)) return;
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      const per = 2 * (r.width + r.height);
+      for (let i = 0, n = Math.floor(per / 8); i < n; i++) {
+        let d = (i / n) * per, x, y;
+        if (d < r.width) { x = r.left + d; y = r.top; }
+        else if ((d -= r.width) < r.height) { x = r.right; y = r.top + d; }
+        else if ((d -= r.height) < r.width) { x = r.right - d; y = r.bottom; }
+        else { x = r.left; y = r.bottom - (d - r.width); }
+        dots.push({ x, y, size: 1.4 * (0.7 + Math.random() * 0.8) });
+      }
+      // An exhibit is a surface, not a hoop: a sparse interior fill so
+      // the capture forms and sheds as a plate of matter.
+      if (el.matches('.exhibit')) {
+        for (let i = 0, n = Math.floor(r.width * r.height / 2000); i < n; i++) {
+          dots.push({
+            x: r.left + Math.random() * r.width,
+            y: r.top + Math.random() * r.height,
+            size: 1.1 * (0.7 + Math.random() * 0.8),
+          });
+        }
+      }
+    });
+    while (dots.length > 3600) dots.splice(Math.floor(Math.random() * dots.length), 1);
+    return dots;
+  }
+
+  // The dossier headline sampled into letter-shaped points, so dots can
+  // land exactly where the real text will fade in.
+  function sampleTitleTargets(h1) {
+    const style = getComputedStyle(h1);
+    const font = style.fontStyle + ' ' + style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+    const off = document.createElement('canvas');
+    const octx = off.getContext('2d', { willReadFrequently: true });
+    const node = h1.firstChild;
+    const text = node.textContent;
+    const range = document.createRange();
+    const targets = [];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i].trim() === '') continue;
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const r = range.getBoundingClientRect();
+      if (!r.width) continue;
+      const w = Math.ceil(r.width) + 4;
+      const h = Math.ceil(r.height) + 4;
+      off.width = w;
+      off.height = h;
+      octx.font = font;
+      octx.textBaseline = 'middle';
+      octx.fillStyle = '#fff';
+      octx.fillText(style.textTransform === 'uppercase' ? text[i].toUpperCase() : text[i], 2, h / 2);
+      const data = octx.getImageData(0, 0, w, h).data;
+      for (let y = 0; y < h; y += 3) {
+        for (let x = 0; x < w; x += 3) {
+          if (data[(y * w + x) * 4 + 3] > 100) targets.push({ x: r.left + x - 2, y: r.top + y - 2 });
+        }
+      }
+    }
+    while (targets.length > 800) targets.splice(Math.floor(Math.random() * targets.length), 1);
+    return targets;
+  }
+
+  // Beat one: a scene streams into the sphere along curled paths, every
+  // dot on its own schedule, aiming at its own spot inside the sphere.
+  // Without onDone, the following exhale owns the canvas from the handoff;
+  // with onDone, this loop fades its own trails out and wipes up.
+  function playDissolve(sceneEl, onHandoff, onDone) {
+    const dots = collectSceneDots(sceneEl);
+    const to = sphereScreenPos();
+    const t0 = performance.now();
+    dots.forEach((d) => {
+      d.delay = Math.random() * 400;
+      d.dur = 620 * (0.55 + Math.random() * 0.9);
+      d.tx = to.x + (Math.random() - 0.5) * 240;
+      d.ty = to.y + (Math.random() - 0.5) * 240;
+      const mx = (d.x + d.tx) / 2, my = (d.y + d.ty) / 2;
+      const ang = Math.atan2(d.ty - d.y, d.tx - d.x) + Math.PI / 2;
+      const amp = (Math.random() - 0.5) * 420;
+      d.cx = mx + Math.cos(ang) * amp;
+      d.cy = my + Math.sin(ang) * amp;
+    });
+    // Handoff fires once most dots have landed, so the next scene starts
+    // breathing out while the stragglers are still streaming in: one
+    // continuous movement, no pause between collapse and dispersal.
+    const ends = dots.map((d) => d.delay + d.dur).sort((a, b) => a - b);
+    const handoffAt = t0 + (ends[Math.floor(ends.length * 0.7)] || 700);
+    const lastAt = t0 + (ends[ends.length - 1] || 700);
+    let handed = false;
+    function frame(now) {
+      // Partial erase instead of a clear leaves each dot a fading trail.
+      fxCtx.globalCompositeOperation = 'destination-out';
+      fxCtx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      fxCtx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      fxCtx.globalCompositeOperation = 'lighter';
+      fxCtx.fillStyle = '#d4f4e2';
+      for (const d of dots) {
+        const t = Math.min(1, Math.max(0, (now - t0 - d.delay) / d.dur));
+        if (t >= 1) continue;
+        const e = t * t * (3 - 2 * t);
+        const u = 1 - e;
+        const x = u * u * d.x + 2 * u * e * d.cx + e * e * d.tx;
+        const y = u * u * d.y + 2 * u * e * d.cy + e * e * d.ty;
+        fxCtx.globalAlpha = 0.9 * (1 - e * 0.75);
+        fxCtx.fillRect(x, y, d.size, d.size);
+      }
+      fxCtx.globalAlpha = 1;
+      if (!handed && now >= handoffAt) { handed = true; onHandoff(); }
+      if (now < lastAt + (onDone ? 450 : 80)) fx.raf = requestAnimationFrame(frame);
+      else {
+        if (!handed) { handed = true; onHandoff(); }
+        if (onDone) { fxWipe(); onDone(); }
+      }
+    }
+    // The first frame draws synchronously, before the real text hides,
+    // so the page never blinks empty.
+    frame(t0);
+  }
+
+  // Beat two: the sphere exhales the title, dots decelerating onto the
+  // letterforms with trails, nearest letters forming first.
+  function playExhale(h1, onDone, extras) {
+    const targets = sampleTitleTargets(h1);
+    if (!targets.length) { h1.style.cssText = ''; onDone(); return; }
+    let minX = Infinity, maxX = -Infinity;
+    targets.forEach((p) => { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); });
+    const span = Math.max(1, maxX - minX);
+    let t0 = performance.now();
+    const dots = targets.map((p) => ({
+      tx: p.x, ty: p.y,
+      delay: ((maxX - p.x) / span) * 380 + Math.random() * 160,
+      dur: 900 * (0.75 + Math.random() * 0.5),
+      launched: false, sx: 0, sy: 0, cx: 0, cy: 0,
+    }));
+    // Extra targets (the exhibits) ride the same breath: they launch a
+    // beat behind the headline and land while the body settles in, so
+    // the capture forms from the sphere instead of merely fading up.
+    let flightEnd = 540 + 900 * 1.25;
+    if (extras && extras.length) {
+      const from0 = sphereScreenPos();
+      let maxD = 1;
+      extras.forEach((p) => { p.d0 = Math.hypot(p.x - from0.x, p.y - from0.y); maxD = Math.max(maxD, p.d0); });
+      extras.forEach((p) => {
+        const delay = 260 + (p.d0 / maxD) * 420 + Math.random() * 220;
+        const dur = 900 * (0.75 + Math.random() * 0.5);
+        flightEnd = Math.max(flightEnd, delay + dur);
+        dots.push({ tx: p.x, ty: p.y, size: p.size, delay, dur, launched: false, sx: 0, sy: 0, cx: 0, cy: 0 });
+      });
+    }
+    let settle = t0 + 540 + 900 * 1.25;
+    let last = t0 + flightEnd;
+    let revealed = false;
+    let lastFrame = 0;
+    function frame(now) {
+      // Same stall forgiveness as the assemble: a long frame gap shifts
+      // the timeline instead of eating the flight.
+      if (lastFrame && now - lastFrame > 250) {
+        const gap = now - lastFrame - 16;
+        t0 += gap; settle += gap; last += gap;
+      }
+      lastFrame = now;
+      // A gentler erase each frame stretches the trails out further.
+      fxCtx.globalCompositeOperation = 'destination-out';
+      fxCtx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+      fxCtx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      fxCtx.globalCompositeOperation = 'lighter';
+      fxCtx.fillStyle = '#d4f4e2';
+      for (const d of dots) {
+        const raw = (now - t0 - d.delay) / d.dur;
+        if (raw < 0) continue;
+        if (!d.launched) {
+          // Launch position is sampled live, so dots pour out of the
+          // sphere wherever its drift has carried it, from all over
+          // its face rather than only the middle.
+          d.launched = true;
+          const from = sphereScreenPos();
+          const a = Math.random() * Math.PI * 2;
+          const rr = Math.random() * Math.min(170, window.innerWidth * 0.22);
+          d.sx = from.x + Math.cos(a) * rr;
+          d.sy = from.y + Math.sin(a) * rr;
+          const mx = (d.sx + d.tx) / 2, my = (d.sy + d.ty) / 2;
+          const ang = Math.atan2(d.ty - d.sy, d.tx - d.sx) + Math.PI / 2;
+          const amp = (Math.random() - 0.5) * 180;
+          d.cx = mx + Math.cos(ang) * amp;
+          d.cy = my + Math.sin(ang) * amp;
+        }
+        const t = Math.min(1, raw);
+        const alpha = t >= 1 ? 1 - (raw - 1) * 3 : 0.85;
+        if (alpha <= 0) continue;
+        const e = 1 - Math.pow(1 - t, 3);
+        const u = 1 - e;
+        const x = u * u * d.sx + 2 * u * e * d.cx + e * e * d.tx;
+        const y = u * u * d.sy + 2 * u * e * d.cy + e * e * d.ty;
+        fxCtx.globalAlpha = alpha;
+        fxCtx.fillRect(x, y, d.size || 1.5, d.size || 1.5);
+      }
+      fxCtx.globalAlpha = 1;
+      if (!revealed && now > settle - 500) {
+        // The real headline fades up under the last settling dots.
+        revealed = true;
+        h1.style.transition = 'opacity 0.45s ease';
+        h1.style.opacity = '1';
+      }
+      if (now < last + 350) fx.raf2 = requestAnimationFrame(frame);
+      else { fxWipe(); h1.style.cssText = ''; onDone(); }
+    }
+    fx.raf2 = requestAnimationFrame(frame);
+  }
+
+  // The reverse of beat one: the sphere exhales a whole page. Dots launch
+  // from all over its face and decelerate onto every character and card
+  // border, surfaces nearest the sphere forming first, and the real page
+  // fades up under the last settling dots.
+  function playAssemble(sceneEl, onDone) {
+    const targets = collectSceneDots(sceneEl);
+    if (!targets.length) { sceneEl.classList.remove('hidden-instant'); onDone(); return; }
+    const from0 = sphereScreenPos();
+    let maxDist = 1;
+    targets.forEach((p) => {
+      p.d0 = Math.hypot(p.x - from0.x, p.y - from0.y);
+      maxDist = Math.max(maxDist, p.d0);
+    });
+    let t0 = performance.now();
+    const dots = targets.map((p) => ({
+      tx: p.x, ty: p.y, size: p.size,
+      delay: (p.d0 / maxDist) * 420 + Math.random() * 220,
+      dur: 780 * (0.65 + Math.random() * 0.7),
+      launched: false, sx: 0, sy: 0, cx: 0, cy: 0,
+    }));
+    const ends = dots.map((d) => d.delay + d.dur).sort((a, b) => a - b);
+    let revealAt = t0 + (ends[Math.floor(ends.length * 0.55)] || 700);
+    let lastAt = t0 + (ends[ends.length - 1] || 700);
+    let revealed = false;
+    let lastFrame = 0;
+    function frame(now) {
+      // The flight runs on wall-clock time; a stalled main thread (cold
+      // loads especially) must pause it, not silently consume it.
+      if (lastFrame && now - lastFrame > 250) {
+        const gap = now - lastFrame - 16;
+        t0 += gap; revealAt += gap; lastAt += gap;
+      }
+      lastFrame = now;
+      fxCtx.globalCompositeOperation = 'destination-out';
+      fxCtx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+      fxCtx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      fxCtx.globalCompositeOperation = 'lighter';
+      fxCtx.fillStyle = '#d4f4e2';
+      for (const d of dots) {
+        const raw = (now - t0 - d.delay) / d.dur;
+        if (raw < 0) continue;
+        if (!d.launched) {
+          // Launch position sampled live, from a wide spread: on Enter the
+          // field is still swollen from the warp, so dots peeling off from
+          // far out read as that expansion condensing into the page.
+          d.launched = true;
+          const from = sphereScreenPos();
+          const a = Math.random() * Math.PI * 2;
+          const rr = (0.2 + 0.8 * Math.random()) * Math.min(430, window.innerWidth * 0.34);
+          d.sx = from.x + Math.cos(a) * rr;
+          d.sy = from.y + Math.sin(a) * rr;
+          const mx = (d.sx + d.tx) / 2, my = (d.sy + d.ty) / 2;
+          const ang = Math.atan2(d.ty - d.sy, d.tx - d.sx) + Math.PI / 2;
+          const amp = (Math.random() - 0.5) * 240;
+          d.cx = mx + Math.cos(ang) * amp;
+          d.cy = my + Math.sin(ang) * amp;
+        }
+        const t = Math.min(1, raw);
+        // Landed dots fade out so they never linger over the real text.
+        const alpha = t >= 1 ? 0.85 - (raw - 1) * 2.2 : 0.85;
+        if (alpha <= 0) continue;
+        const e = 1 - Math.pow(1 - t, 3);
+        const u = 1 - e;
+        const x = u * u * d.sx + 2 * u * e * d.cx + e * e * d.tx;
+        const y = u * u * d.sy + 2 * u * e * d.cy + e * e * d.ty;
+        fxCtx.globalAlpha = alpha;
+        fxCtx.fillRect(x, y, d.size, d.size);
+      }
+      fxCtx.globalAlpha = 1;
+      if (!revealed && now >= revealAt) {
+        // The real page fades up under the last settling dots.
+        revealed = true;
+        sceneEl.style.transition = 'opacity 0.7s ease';
+        sceneEl.classList.remove('hidden-instant');
+        sceneEl.style.opacity = '1';
+      }
+      if (now < lastAt + 450) fx.raf2 = requestAnimationFrame(frame);
+      else { fxWipe(); sceneEl.style.cssText = ''; onDone(); }
+    }
+    fx.raf2 = requestAnimationFrame(frame);
+  }
+
+  // The rest of a scene settles in top-down while its title forms;
+  // section headings and file names decrypt as their block lands.
+  function revealScene(sceneEl) {
+    sceneEl.querySelectorAll('.pback, .pkicker, .pabove, .pstatus, .ptagline, .section, .entry, .exhibits, .link-node').forEach((el, i) => {
+      el.style.transition = 'none';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(12px)';
+      fxTimer(() => {
+        el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+        fxTimer(() => { el.style.cssText = ''; }, 750);
+      }, 300 + i * 140);
+    });
+    sceneEl.querySelectorAll('.section h2, .entry .name, .link-node').forEach((el, i) => {
+      if (!el.dataset.text) el.dataset.text = el.textContent;
+      decrypt(el, 700 + i * 140, el.dataset.text.length * 8);
+    });
+  }
+
+  // Arrival ceremony: the sphere exhales the scene's headline while the
+  // body settles top-down. Runs after a dissolve or on a direct load.
+  function arriveScene(path) {
+    fx.active = true;
+    fx.startT = performance.now();
+    const sceneEl = SCENES[path];
+    const h1 = sceneEl.querySelector('h1');
+    if (h1.dataset.text) h1.textContent = h1.dataset.text;
+    h1.style.transition = 'none';
+    h1.style.opacity = '0';
+    // The exhibits arrive as matter too, on the same breath. Sampled
+    // before the reveal below blanks the link's text for its decrypt
+    // and nudges every block 12px off its settled spot.
+    const exhibitDots = collectSceneDots(sceneEl, '.exhibits, .exhibit-link');
+    revealScene(sceneEl);
+    // One frame for layout to settle before measuring the headline.
+    requestAnimationFrame(() => {
+      if (!fx.active) return;
+      playExhale(h1, () => { fx.active = false; }, exhibitDots);
+    });
+  }
+
+  // A hop between any two scenes, in either direction: the old page
+  // dissolves into the sphere, which pays the new one back out.
+  function matterHop(fromPath, toPath, push = true) {
+    if (fx.active || !SCENES[fromPath] || !SCENES[toPath] || reducedMotion) { showScene(toPath, push); return; }
+    fx.active = true;
+    fx.startT = performance.now();
+    fx.pendingPath = toPath;
+    // The URL changes at click time, not at transition end, so the back
+    // button pressed mid-flight returns to the previous page as expected.
+    if (push) { try { history.pushState({ p: toPath }, '', toPath); } catch (err) {} }
+    playDissolve(SCENES[fromPath], () => {
+      fx.internalNav = true;
+      showScene(toPath, false);
+      fx.internalNav = false;
+      fx.pendingPath = null;
+      SCENES[fromPath].classList.remove('hidden-instant');
+      arriveScene(toPath);
+    });
+    SCENES[fromPath].classList.add('hidden-instant');
+  }
+
+  // ----- particle sphere -----
+  const PARTICLE_COUNT = 4500;
+  const basePositions = new Float32Array(PARTICLE_COUNT * 3);
+  const positions = new Float32Array(PARTICLE_COUNT * 3);
+  const colors = new Float32Array(PARTICLE_COUNT * 3);
+  const offsets = new Float32Array(PARTICLE_COUNT);
+  // Every dot gets its own jump speed, so the web shears and tangles as it
+  // expands instead of enlarging as one tidy shape.
+  const warpRates = new Float32Array(PARTICLE_COUNT);
+
+  const phi = Math.PI * (Math.sqrt(5) - 1);
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
+    const radius = Math.sqrt(1 - y * y);
+    const theta = phi * i;
+    const x = Math.cos(theta) * radius;
+    const z = Math.sin(theta) * radius;
+
+    const r = 1.0 + (Math.random() - 0.5) * 0.45 + Math.pow(Math.random(), 3) * 0.3;
+    basePositions[i * 3]     = x * r;
+    basePositions[i * 3 + 1] = y * r;
+    basePositions[i * 3 + 2] = z * r;
+    positions[i * 3]     = x * r;
+    positions[i * 3 + 1] = y * r;
+    positions[i * 3 + 2] = z * r;
+
+    const distFromCenter = r;
+    const warmth = Math.max(0, 1.3 - distFromCenter);
+    colors[i * 3]     = 0.42 - warmth * 0.20;
+    colors[i * 3 + 1] = 0.88 + warmth * 0.08;
+    colors[i * 3 + 2] = 0.55 - warmth * 0.10;
+
+    offsets[i] = Math.random() * Math.PI * 2;
+    warpRates[i] = 0.55 + Math.random() * 1.25;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.018,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+
+  const particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+
+  // ----- neural connections -----
+  const connectionPairs = [];
+  const MAX_CONN_DIST = 0.36;
+  const SAMPLE_STRIDE = 5;
+  const MAX_PER_NODE = 4;
+  for (let i = 0; i < PARTICLE_COUNT; i += SAMPLE_STRIDE) {
+    let n = 0;
+    for (let j = i + SAMPLE_STRIDE; j < PARTICLE_COUNT; j += SAMPLE_STRIDE) {
+      const dx = basePositions[i * 3]     - basePositions[j * 3];
+      const dy = basePositions[i * 3 + 1] - basePositions[j * 3 + 1];
+      const dz = basePositions[i * 3 + 2] - basePositions[j * 3 + 2];
+      const d2 = dx * dx + dy * dy + dz * dz;
+      if (d2 < MAX_CONN_DIST * MAX_CONN_DIST) {
+        connectionPairs.push(i, j);
+        if (++n >= MAX_PER_NODE) break;
+      }
+    }
+  }
+  const lineCount = connectionPairs.length / 2;
+  const linePositions = new Float32Array(lineCount * 2 * 3);
+  const lineColors = new Float32Array(lineCount * 2 * 3);
+
+  for (let k = 0; k < lineCount; k++) {
+    for (let v = 0; v < 2; v++) {
+      lineColors[k * 6 + v * 3]     = 0.15;
+      lineColors[k * 6 + v * 3 + 1] = 0.90;
+      lineColors[k * 6 + v * 3 + 2] = 0.50;
+    }
+  }
+
+  const lineGeometry = new THREE.BufferGeometry();
+  lineGeometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+  lineGeometry.setAttribute('color',    new THREE.BufferAttribute(lineColors, 3));
+
+  const lineMaterial = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.32,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const lineSegments = new THREE.LineSegments(lineGeometry, lineMaterial);
+  scene.add(lineSegments);
+
+  // ----- glowing core -----
+  function makeCoreTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0,    'rgba(190, 255, 215, 1.0)');
+    g.addColorStop(0.15, 'rgba(110, 240, 170, 0.9)');
+    g.addColorStop(0.35, 'rgba(40, 200, 110, 0.45)');
+    g.addColorStop(0.6,  'rgba(10, 90, 50, 0.15)');
+    g.addColorStop(1,    'rgba(5, 60, 30, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    return new THREE.CanvasTexture(c);
+  }
+
+  const coreSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeCoreTexture(),
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0.9,
+  }));
+  coreSprite.scale.set(1.6, 1.6, 1);
+  scene.add(coreSprite);
+
+  const haloSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeCoreTexture(),
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    transparent: true,
+    opacity: 0.35,
+  }));
+  haloSprite.scale.set(4, 4, 1);
+  scene.add(haloSprite);
+
+  // ----- the resident -----
+  // A faint figure lives inside the core. Invisible at a polite distance;
+  // lean in (zoom) and he emerges as a shadow in the light. A sprite always
+  // faces the camera, so spinning and dragging never breaks the illusion.
+  const markSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    // Root-absolute on purpose: a relative path resolves against the current
+    // URL, so a session that starts on /projects/exsa would request
+    // /projects/jared-mark.png, which the rewrites serve as HTML and the
+    // resident never loads for that whole visit.
+    map: new THREE.TextureLoader().load('/jared-mark.png'),
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+  }));
+  markSprite.scale.set(1.05, 1.05, 1);
+  markSprite.renderOrder = 10; // drawn after the glow so he shades it
+  scene.add(markSprite);
+
+  // ----- ambient level (idle breathing, no mic on the cover page) -----
+  let ambientLevel = 0;
+  function sampleAmbient(dt) {
+    const t = performance.now() * 0.0008;
+    const target = 0.08 + 0.05 * Math.sin(t) + 0.02 * Math.sin(t * 2.7);
+    const alpha = 1 - Math.exp(-5 * dt);
+    ambientLevel += (target - ambientLevel) * alpha;
+  }
+
+  // ----- living tethers -----
+  // On the desktop projects index each card holds onto a passing particle:
+  // a hairline runs from the card's inner edge to that particle and rides
+  // with it as the sphere breathes and tumbles. When its particle swings
+  // out of reach, the card quietly grabs the nearest one passing by.
+  const tetherCanvas = document.getElementById('tether');
+  const tetherCtx = tetherCanvas.getContext('2d');
+  function tetherResize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    tetherCanvas.width = Math.floor(window.innerWidth * dpr);
+    tetherCanvas.height = Math.floor(window.innerHeight * dpr);
+    tetherCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  tetherResize();
+  window.addEventListener('resize', tetherResize);
+
+  const tethers = Array.from(SCENES['/projects'].querySelectorAll('.plist .entry')).map((el, i) => ({
+    el,
+    home: '/projects', // the scene this tether belongs to
+    fromRight: i < 2, // the first pair sits left of the sphere, so their line leaves the right edge
+    dim: el.classList.contains('soon') ? 0.55 : 1,
+    pi: -1,           // index of the particle currently held
+    x: 0, y: 0,       // eased endpoint, so handoffs glide instead of snapping
+    a: 0,             // eased alpha, so tethers breathe in rather than pop
+    sway: Math.random() * Math.PI * 2,
+  }));
+  // The about node lives on the field itself, holding a particle the same
+  // way the project cards do; home of null means the front door.
+  tethers.push({
+    el: aboutNode,
+    home: null,
+    fromRight: false, // it floats right of the sphere, so its line leaves the left edge
+    dim: 0.8,
+    pi: -1, x: 0, y: 0, a: 0,
+    sway: Math.random() * Math.PI * 2,
+  });
+  // Each case file's exhibit holds a particle from the sphere's flank,
+  // and its live link above the crown rides its own thread. Both sit
+  // left of the sphere's mass, so their lines leave the right edge.
+  [['/projects/exsa', '#file-exsa .exhibit'],
+   ['/projects/exsa', '#file-exsa .link-node'],
+   ['/projects/table-23', '#file-table-23 .exhibit'],
+   ['/projects/table-23', '#file-table-23 .link-node'],
+   ['/projects/homebase', '#file-homebase .exhibit'],
+   ['/projects/homebase', '#file-homebase .link-node']].forEach(([home, sel]) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    tethers.push({
+      el, home,
+      fromRight: true,
+      dim: el.classList.contains('link-node') ? 0.85 : 1,
+      pi: -1, x: 0, y: 0, a: 0,
+      sway: Math.random() * Math.PI * 2,
+    });
+  });
+  const tetherVec = new THREE.Vector3();
+  let tetherDrawn = false;
+  function projectParticle(i, vw, vh) {
+    tetherVec.set(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2])
+      .applyQuaternion(particles.quaternion)
+      .project(camera);
+    return { x: (tetherVec.x * 0.5 + 0.5) * vw, y: (0.5 - tetherVec.y * 0.5) * vh };
+  }
+  function drawTethers(dt, now) {
+    const ready = !fx.active && !('arrive' in document.documentElement.dataset);
+    // The field's own tether keeps quiet while the dive is playing. Unlike
+    // the constellation's, it follows its node at every width.
+    const fieldCalm = scenePath === null && !warp.active && !document.body.classList.contains('warping');
+    const projOn = ready && scenePath === '/projects' && window.innerWidth >= 1100;
+    // Case files carry their exhibit's tether the same way, desktop only.
+    const fileOn = ready && !!scenePath && scenePath !== '/projects' && window.innerWidth >= 1100;
+    const fieldOn = ready && fieldCalm;
+    const on = projOn || fieldOn || fileOn;
+    if (!on) {
+      if (tetherDrawn) {
+        tetherCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        tetherDrawn = false;
+        tethers.forEach((t) => { t.pi = -1; t.a = 0; });
+      }
+      return;
+    }
+    const vw = window.innerWidth, vh = window.innerHeight;
+    tetherCtx.clearRect(0, 0, vw, vh);
+    tetherDrawn = true;
+    const reach = Math.min(vw * 0.32, 460);
+    const ease = 1 - Math.exp(-7 * dt);
+    for (const t of tethers) {
+      // Each tether only reaches for particles while its own home is up.
+      const homeOn = t.home === null ? fieldOn
+        : t.home === '/projects' ? projOn
+        : fileOn && scenePath === t.home;
+      if (!homeOn) { t.pi = -1; t.a = 0; continue; }
+      // The field tether gets a longer arm on narrow screens, where the
+      // crown's particles breathe in and out of the standard reach.
+      const tReach = t.home === null ? Math.min(vw * 0.5, 460) : reach;
+      const r = t.el.getBoundingClientRect();
+      if (r.bottom < 40 || r.top > vh - 40) { t.pi = -1; t.a = 0; continue; }
+      const ax = t.fromRight ? r.right : r.left;
+      const ay = r.top + r.height / 2;
+      let px = 0, py = 0;
+      if (t.pi >= 0) {
+        const p = projectParticle(t.pi, vw, vh);
+        if (Math.hypot(p.x - ax, p.y - ay) > tReach) t.pi = -1;
+        else { px = p.x; py = p.y; }
+      }
+      if (t.pi < 0) {
+        // Grab the nearest passing particle; a coarse stride keeps this cheap.
+        let bd = Infinity;
+        for (let i = 0; i < PARTICLE_COUNT; i += 9) {
+          const p = projectParticle(i, vw, vh);
+          const d = Math.hypot(p.x - ax, p.y - ay);
+          if (d < bd) { bd = d; t.pi = i; px = p.x; py = p.y; }
+        }
+        if (bd > tReach) { t.pi = -1; t.a = 0; continue; }
+        if (t.a <= 0.01) { t.x = px; t.y = py; }
+      }
+      t.x += (px - t.x) * ease;
+      t.y += (py - t.y) * ease;
+      t.a += (1 - t.a) * ease * 0.6;
+      // A slow breath of sag keeps the line reading as a thread, not a wire.
+      const mx = (ax + t.x) / 2, my = (ay + t.y) / 2;
+      const ang = Math.atan2(t.y - ay, t.x - ax) + Math.PI / 2;
+      const sag = Math.sin(now * 0.0011 + t.sway) * 7;
+      const alpha = t.a * t.dim;
+      const g = tetherCtx.createLinearGradient(ax, ay, t.x, t.y);
+      g.addColorStop(0, 'rgba(95, 191, 133, ' + (0.5 * alpha).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(95, 191, 133, ' + (0.1 * alpha).toFixed(3) + ')');
+      tetherCtx.strokeStyle = g;
+      tetherCtx.lineWidth = 1;
+      tetherCtx.beginPath();
+      tetherCtx.moveTo(ax, ay);
+      tetherCtx.quadraticCurveTo(mx + Math.cos(ang) * sag, my + Math.sin(ang) * sag, t.x, t.y);
+      tetherCtx.stroke();
+      // The held particle glints where the thread meets it.
+      tetherCtx.fillStyle = 'rgba(212, 244, 226, ' + (0.9 * alpha).toFixed(3) + ')';
+      tetherCtx.fillRect(t.x - 1.25, t.y - 1.25, 2.5, 2.5);
+    }
+  }
+
+  // ----- the about node wanders its quadrant -----
+  // Two incommensurate sines per axis trace a slow figure that never quite
+  // repeats, keeping the node clear of the title block and the chrome
+  // bands. Desktop roams the top-right quadrant; mobile keeps a tighter
+  // float in the negative space between the subtitle and the sphere's
+  // crown, anchored to the right edge so narrow screens never overflow.
+  function driftAboutNode(now) {
+    if (reducedMotion) {
+      if (aboutNode.style.left) { aboutNode.style.left = ''; aboutNode.style.top = ''; aboutNode.style.right = ''; }
+      return;
+    }
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let x, y;
+    if (vw < 1100) {
+      const rightEdge = 0.93 + 0.015 * Math.sin(now * 0.00013 + 1.7) + 0.008 * Math.sin(now * 0.00041);
+      x = rightEdge * vw - aboutNode.offsetWidth;
+      y = (0.165 + 0.012 * Math.sin(now * 0.00017) + 0.006 * Math.sin(now * 0.00053 + 2.4)) * vh;
+    } else {
+      x = (0.70 + 0.08 * Math.sin(now * 0.00013 + 1.7) + 0.03 * Math.sin(now * 0.00041)) * vw;
+      y = (0.24 + 0.06 * Math.sin(now * 0.00017) + 0.025 * Math.sin(now * 0.00053 + 2.4)) * vh;
+    }
+    // Left owns the position while wandering; the CSS right must let go or
+    // the element would stretch between the two edges.
+    aboutNode.style.right = 'auto';
+    aboutNode.style.left = x.toFixed(1) + 'px';
+    aboutNode.style.top = y.toFixed(1) + 'px';
+  }
+
+  // ----- the exhibits breathe in place -----
+  // Each floating exhibit (and the live link above the crown) drifts a
+  // small figure around its resting spot: enough to read as held by its
+  // thread, never loose. Offsets ride position, not transform, because
+  // the arrival reveal owns transform. Desktop only; below 1100px the
+  // exhibits sit statically in the flow.
+  const exhibitEls = Array.from(document.querySelectorAll('.exhibit'));
+  const linkNodes = Array.from(document.querySelectorAll('.link-node'));
+  function driftExhibits(now) {
+    if (reducedMotion || window.innerWidth < 1100) {
+      exhibitEls.concat(linkNodes).forEach((el) => { if (el.style.left) { el.style.left = ''; el.style.top = ''; } });
+      return;
+    }
+    exhibitEls.forEach((el, i) => {
+      el.style.left = (Math.sin(now * 0.00019 + i * 2.1) * 9 + Math.sin(now * 0.00047 + i) * 4).toFixed(1) + 'px';
+      el.style.top = (Math.sin(now * 0.00023 + i * 1.3) * 7 + Math.sin(now * 0.00059 + i * 2.7) * 3).toFixed(1) + 'px';
+    });
+    linkNodes.forEach((el, i) => {
+      el.style.left = (58 + 0.9 * Math.sin(now * 0.00015 + 0.8 + i * 1.9) + 0.35 * Math.sin(now * 0.00043 + i)).toFixed(2) + 'vw';
+      el.style.top = (21 + 1.1 * Math.sin(now * 0.00021 + 2.2 + i * 1.3) + 0.4 * Math.sin(now * 0.00057 + 1.1 + i * 2.5)).toFixed(2) + 'vh';
+    });
+  }
+
+  // ----- animation loop -----
+  let lastT = 0;
+  // Each visit the sphere tumbles about its own random tilted axis (x, y
+  // and z all in play), so no two arrivals spin quite the same way.
+  const spinAxis = new THREE.Vector3(
+    Math.random() - 0.5,
+    Math.random() - 0.5,
+    (Math.random() - 0.5) * 0.7
+  ).normalize();
+  let autoAngle = 0;
+  const autoQuat = new THREE.Quaternion();
+  const userQuat = new THREE.Quaternion();
+  const userEuler = new THREE.Euler();
+  // Drag accumulates as a quaternion (trackball style), so there is no
+  // gimbal ceiling: the sphere spins forever on every axis.
+  const userSpin = new THREE.Quaternion();
+  const dragQuat = new THREE.Quaternion();
+  const dragEuler = new THREE.Euler();
+  let smoothPulse = 0;
+  let warpDim = 0; // how far the Enter departure has progressed (0 = not leaving)
+  let sphereShift = 0; // sideways camera offset while a case file is open
+  function animate(now) {
+    requestAnimationFrame(animate);
+    let dt = (now - lastT) / 1000;
+    lastT = now;
+    if (dt <= 0 || dt > 0.05) dt = 1 / 60;
+
+    sampleAmbient(dt);
+    const lvl = ambientLevel;
+
+    smoothPulse += (interaction.pulseAmount - smoothPulse) * (1 - Math.exp(-10 * dt));
+    interaction.pulseAmount *= Math.exp(-4.2 * dt);
+
+    const t = now * 0.0004;
+    // The breathing lives in particle MOVEMENT, not in light. The dots
+    // travel outward clearly while glow stays near-constant, so expansion
+    // reads as motion instead of dissolving into a blur.
+    const expand = 1 + lvl * 1.35 + smoothPulse * 0.55;
+    const s1 = t * 2, s2 = t * 5, s3 = t * 4;
+    const lvlWobble = lvl * 0.2;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const o = offsets[i];
+      const noise = Math.sin(s1 + o) * 0.03 + Math.sin(s2 + o * 1.7) * 0.015;
+      // On Enter each dot streams outward at its own rate (warpDim > 0),
+      // capped so the tangled web fills the screen for the whole jump.
+      const r = (expand + noise + lvlWobble * Math.sin(o * 3 + s3)) * (1 + warpDim * 3.2 * warpRates[i]);
+      positions[i * 3]     = basePositions[i * 3] * r;
+      positions[i * 3 + 1] = basePositions[i * 3 + 1] * r;
+      positions[i * 3 + 2] = basePositions[i * 3 + 2] * r;
+    }
+    geometry.attributes.position.needsUpdate = true;
+
+    for (let k = 0; k < lineCount; k++) {
+      const i = connectionPairs[k * 2];
+      const j = connectionPairs[k * 2 + 1];
+      linePositions[k * 6]     = positions[i * 3];
+      linePositions[k * 6 + 1] = positions[i * 3 + 1];
+      linePositions[k * 6 + 2] = positions[i * 3 + 2];
+      linePositions[k * 6 + 3] = positions[j * 3];
+      linePositions[k * 6 + 4] = positions[j * 3 + 1];
+      linePositions[k * 6 + 5] = positions[j * 3 + 2];
+    }
+    lineGeometry.attributes.position.needsUpdate = true;
+    // The stretching web is the hero of the jump: lines brighten as they pull.
+    lineMaterial.opacity = (0.27 + lvl * 0.18 + smoothPulse * 0.25) * (1 + warpDim * 0.8);
+    // The dots themselves pick up a little shine as they stream past.
+    material.opacity = 0.85 + warpDim * 0.15;
+
+    if (!interaction.isDragging) {
+      dragEuler.set(interaction.velX * dt, interaction.velY * dt, 0);
+      dragQuat.setFromEuler(dragEuler);
+      userSpin.premultiply(dragQuat);
+      const decay = Math.exp(-3.5 * dt);
+      interaction.velY *= decay;
+      interaction.velX *= decay;
+    }
+    autoAngle += (0.072 + lvl * 0.18) * dt;
+    autoQuat.setFromAxisAngle(spinAxis, autoAngle);
+    // Gentle ambient sway on top of the free-spinning drag and auto tumble.
+    userEuler.set(Math.sin(now * 0.0002) * 0.08, 0, 0);
+    userQuat.setFromEuler(userEuler);
+    particles.quaternion.copy(userQuat).multiply(userSpin).multiply(autoQuat);
+    lineSegments.quaternion.copy(particles.quaternion);
+
+    interaction.cameraDistance += (interaction.targetDistance - interaction.cameraDistance) * (1 - Math.exp(-8 * dt));
+
+    // How deep into the nucleus the camera is leaning (0 far, 1 at MIN_ZOOM).
+    const closeness = Math.max(0, Math.min(1, (3.0 - interaction.cameraDistance) / (3.0 - MIN_ZOOM)));
+
+
+    if (warp.active) {
+      // Enter: two separate movements. The nucleus dims and collapses
+      // inward, while the dots brighten slightly and stream outward past
+      // the viewer, stars expanding towards you at the start of a jump.
+      const wt = Math.min(1, (now - warp.t0) / 1100);
+      warpDim = wt * wt; // accelerates like a ship getting up to speed
+      if (bloomPass) bloomPass.strength = 0.62 + warpDim * 0.5;
+      if (trailPass) trailPass.uniforms['damp'].value = 0.35 + warpDim * 0.5;
+    } else {
+      // After arrival the streaks settle and the field quietly regathers.
+      warpDim += (0 - warpDim) * (1 - Math.exp(-1.2 * dt));
+      if (bloomPass) {
+        // Bloom breathes with the sphere, flares on a tap pulse, and calms as
+        // someone leans in so the resident can read against the light.
+        bloomPass.strength = (0.62 + lvl * 0.3 + smoothPulse * 0.55) * (1 - closeness * 0.5);
+      }
+      if (trailPass) trailPass.uniforms['damp'].value = 0.35;
+    }
+    // While a scene is up, the nucleus stays politely dimmed. The ramp is
+    // slow on purpose: it spans the dispersal, so the orb ebbs away in
+    // step with its particles leaving to form the page.
+    sceneDim += ((scenePath ? 1 : 0) - sceneDim) * (1 - Math.exp(-1.4 * dt));
+    // The dive itself only breathes the nucleus down slightly; it never
+    // kills the light before the dispersal has begun.
+    const dimNow = Math.min(1, warpDim * 0.22 + sceneDim * 0.9);
+
+    camera.position.z = interaction.cameraDistance;
+
+    // On a case file the whole field drifts right (desktop only), leaving
+    // the dossier sheet clear air while the sphere keeps the far column.
+    // The about page mirrors it: the field takes the left, the sheet the right.
+    const wantShift = scenePath && scenePath !== '/projects' && window.innerWidth >= 1100;
+    // Moving the camera right puts the sphere on the left of the screen.
+    const shiftDir = scenePath === '/about-builder01' ? 1 : -1;
+    const halfW = Math.tan(camera.fov * Math.PI / 360) * interaction.cameraDistance * camera.aspect;
+    sphereShift += ((wantShift ? shiftDir * halfW * 0.5 : 0) - sphereShift) * (1 - Math.exp(-2.2 * dt));
+    camera.position.x = sphereShift;
+
+    // The nucleus dims INWARD on departure: shrinking as it fades.
+    const coreScale = (1.15 + lvl * 0.8 + smoothPulse * 0.55) * (1 - dimNow);
+    coreSprite.scale.set(coreScale, coreScale, 1);
+    coreSprite.material.opacity = (0.7 + lvl * 0.3) * (1 - closeness * 0.45) * (1 - dimNow);
+
+    const haloScale = (3.3 + lvl * 1.1 + smoothPulse * 1.0) * (1 - dimNow * 0.8);
+    haloSprite.scale.set(haloScale, haloScale, 1);
+    haloSprite.material.opacity = (0.22 + lvl * 0.1) * (1 - dimNow);
+
+    // The resident only shows himself up close. Squared so the fade-in
+    // starts imperceptibly and stays translucent, never solid. He is sized
+    // to the core's glow and breathes with it, staying inside the nucleus.
+    const markScale = coreScale * 0.195;
+    markSprite.scale.set(markScale, markScale, 1);
+    markSprite.material.opacity = closeness * closeness * 0.85;
+
+    driftAboutNode(now);
+    driftExhibits(now);
+    drawTethers(dt, now);
+
+    if (composer) composer.render();
+    else renderer.render(scene, camera);
+  }
+  requestAnimationFrame(animate);
+</script>
+</body>
+</html>
