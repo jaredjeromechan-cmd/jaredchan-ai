@@ -1,0 +1,930 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jaredchan.ai admin</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  /* Palette lifted straight from portfolio/index.html's :root, so this tool
+     reads as the same site without pulling in any of its fonts or motion. */
+  :root {
+    --bg-deep: #010805;
+    --bg-mid: #03140c;
+    --bg-soft: #082118;
+    --text-primary: #d6e8dd;
+    --text-muted: #5e8b76;
+    --text-dim: #2d4a3a;
+    --accent: #5fbf85;
+    --warn: #e8b34d;
+    --error: #ff8a80;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 6rem;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+  }
+
+  h2 {
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 0.75rem;
+  }
+
+  .sub {
+    color: var(--text-muted);
+    margin: 0 0 1.5rem;
+  }
+
+  .note {
+    border: 1px solid var(--text-dim);
+    background: var(--bg-soft);
+    padding: 0.75rem 1rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .panel {
+    border: 1px solid var(--text-dim);
+    background: var(--bg-mid);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hint {
+    color: var(--text-muted);
+    margin: 0 0 0.75rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    display: block;
+    width: 100%;
+    margin-top: 0.3rem;
+    background: var(--bg-soft);
+    border: 1px solid var(--text-dim);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 4.5rem;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  input[type="checkbox"] {
+    margin-right: 0.4rem;
+  }
+
+  button {
+    background: var(--bg-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--text-dim);
+  }
+
+  button:disabled {
+    border-color: var(--text-dim);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .token-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .token-row input {
+    flex: 1 1 260px;
+    margin-top: 0;
+  }
+
+  .token-status {
+    color: var(--text-muted);
+    margin: 0.75rem 0 0;
+  }
+
+  #toolbar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .banner {
+    border: 1px solid var(--text-dim);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .banner.info { border-color: var(--text-muted); color: var(--text-primary); }
+  .banner.success { border-color: var(--accent); color: var(--accent); }
+  .banner.warn { border-color: var(--warn); color: var(--warn); }
+  .banner.error { border-color: var(--error); color: var(--error); }
+  .banner.conflict { border-color: var(--warn); color: var(--warn); }
+
+  .banner a { color: inherit; }
+  .banner button {
+    margin-top: 0.5rem;
+    border-color: var(--warn);
+    color: var(--warn);
+  }
+
+  #dry-run-output {
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 480px;
+    overflow: auto;
+    background: var(--bg-soft);
+    border: 1px solid var(--text-dim);
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  #dry-run-summary {
+    color: var(--text-muted);
+  }
+
+  details.project {
+    border: 1px solid var(--text-dim);
+    background: var(--bg-mid);
+    margin-bottom: 1.25rem;
+  }
+
+  details.project > summary {
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    letter-spacing: 0.03em;
+  }
+
+  .project-body {
+    padding: 0 1.25rem 1.25rem;
+  }
+
+  .readonly-row {
+    display: flex;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .readonly-row span:first-child {
+    width: 5rem;
+    flex-shrink: 0;
+  }
+
+  .readonly-row code {
+    color: var(--text-primary);
+    word-break: break-all;
+  }
+
+  fieldset {
+    border: 1px solid var(--text-dim);
+    padding: 0.9rem 1rem 0.5rem;
+    margin: 0 0 1rem;
+  }
+
+  legend {
+    color: var(--text-muted);
+    padding: 0 0.4rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .field-error {
+    display: block;
+    color: var(--error);
+    font-size: 0.78rem;
+    margin: -0.5rem 0 0.75rem;
+    min-height: 1em;
+  }
+
+  .exhibit-fields img {
+    display: block;
+    width: 160px;
+    height: auto;
+    border: 1px solid var(--text-dim);
+    margin-bottom: 0.6rem;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <h1>jaredchan.ai admin</h1>
+    <p class="sub">Edit the project copy on the live site.</p>
+  </header>
+
+  <p class="note">
+    v1 note: this tool edits the text of the existing projects only. It cannot add, remove or reorder projects,
+    sections or blocks, cannot change what kind of block something is, and cannot upload new images.
+  </p>
+
+  <section class="panel" id="token-panel">
+    <h2>Token</h2>
+    <p class="hint">
+      Paste a fine-grained GitHub personal access token scoped to this repo with Contents read and write access.
+      It is stored only in this browser and is only ever sent to api.github.com.
+    </p>
+    <div class="token-row">
+      <input type="password" id="token-input" placeholder="github_pat_..." autocomplete="off">
+      <button type="button" id="connect-btn">Connect</button>
+      <button type="button" id="clear-token-btn">Clear token</button>
+    </div>
+    <p id="token-status" class="token-status"></p>
+  </section>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="panel" id="toolbar">
+    <button type="button" id="reload-btn">Reload</button>
+    <button type="button" id="dry-run-btn" disabled>Dry run</button>
+    <button type="button" id="save-btn" disabled>Save</button>
+  </section>
+
+  <section class="panel" id="dry-run-panel" hidden>
+    <h2>Dry run result</h2>
+    <p id="dry-run-summary"></p>
+    <pre id="dry-run-output"></pre>
+  </section>
+
+  <section id="projects"></section>
+
+</main>
+
+<script>
+  // ============================================================
+  // jaredchan.ai admin: edits the #project-data block in
+  // portfolio/index.html by committing straight to GitHub. A push to
+  // main auto-deploys, so a successful Save publishes itself in about
+  // a minute. See PORTFOLIO-EFFECTS.md for what this block feeds.
+  // ============================================================
+
+  const REPO = 'jaredjeromechan-cmd/jaredchan-ai';
+  const FILE_PATH = 'portfolio/index.html';
+  const TOKEN_KEY = 'jaredchan-admin-token';
+  const OPEN_TAG = '<script type="application/json" id="project-data">';
+  // Built by concatenation, not as one literal string: the browser's HTML
+  // parser watches for the closing script sequence anywhere in this file's
+  // own script block, including inside JS string and comment text, so the
+  // exact characters can never appear here whole.
+  const CLOSE_TAG = '</' + 'script>';
+
+  let html = '';        // full text of portfolio/index.html, as last loaded or saved
+  let sha = null;        // GitHub blob sha for the loaded/saved content, required to save
+  let jsonStart = 0;      // offset just after the data block's opening tag
+  let jsonEnd = 0;      // offset at the start of the data block's closing tag
+  let projects = [];      // in-memory, editable
+  let loadedProjects = [];  // deep copy taken at load/save time, for the dry-run diff
+  let dataLoaded = false;
+
+  const tokenInput = document.getElementById('token-input');
+  const connectBtn = document.getElementById('connect-btn');
+  const clearTokenBtn = document.getElementById('clear-token-btn');
+  const tokenStatus = document.getElementById('token-status');
+  const bannerEl = document.getElementById('banner');
+  const reloadBtn = document.getElementById('reload-btn');
+  const dryRunBtn = document.getElementById('dry-run-btn');
+  const saveBtn = document.getElementById('save-btn');
+  const dryRunPanel = document.getElementById('dry-run-panel');
+  const dryRunSummary = document.getElementById('dry-run-summary');
+  const dryRunOutput = document.getElementById('dry-run-output');
+  const projectsEl = document.getElementById('projects');
+
+  // ---- small helpers ----------------------------------------------------
+
+  function escAttr(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  }
+
+  // Textarea content is parsed as HTML text, so anything going in has to be
+  // entity-escaped or a stray "&" or "<" in the copy would corrupt what the
+  // textarea shows (and, worse, what a user thinks they are about to save).
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function trimmed(v) {
+    return String(v == null ? '' : v).trim();
+  }
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY) || '';
+  }
+
+  function showBanner(kind, innerHtml) {
+    bannerEl.className = 'banner ' + kind;
+    bannerEl.innerHTML = innerHtml;
+    bannerEl.hidden = false;
+  }
+
+  function clearBanner() {
+    bannerEl.hidden = true;
+    bannerEl.innerHTML = '';
+  }
+
+  // Base64 as GitHub's contents API speaks it is not the same as atob/btoa
+  // on their own: the API wraps base64 with newlines, and both directions
+  // need to go through UTF-8 bytes rather than JS's native UTF-16 string,
+  // or accented characters and the odd emoji in copy would come out mangled.
+  function base64ToUtf8(b64) {
+    const clean = b64.replace(/[\r\n]/g, '');
+    const binary = atob(clean);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
+  // Reads/writes a dotted path like "0.sections.1.blocks.0.html" against the
+  // projects array. Numeric segments index arrays, everything else is a key.
+  function setPath(obj, path, value) {
+    const parts = path.split('.');
+    let target = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const key = /^\d+$/.test(parts[i]) ? Number(parts[i]) : parts[i];
+      target = target[key];
+    }
+    const last = parts[parts.length - 1];
+    const lastKey = /^\d+$/.test(last) ? Number(last) : last;
+    target[lastKey] = value;
+  }
+
+  // ---- token ---------------------------------------------------------
+
+  function updateTokenStatus() {
+    const token = getToken();
+    if (token) {
+      tokenStatus.textContent = 'Connected · token ending ' + token.slice(-4);
+    } else {
+      tokenStatus.textContent = 'No token stored. Loading and Dry run still work without one; Save needs one.';
+    }
+  }
+
+  function connectToken() {
+    const value = tokenInput.value.trim();
+    if (!value) {
+      showBanner('error', 'Paste a token into the box before pressing Connect.');
+      return;
+    }
+    localStorage.setItem(TOKEN_KEY, value);
+    tokenInput.value = '';
+    updateTokenStatus();
+    updateButtonStates();
+    // Classic tokens (ghp_) grant far more than this tool needs; a leak of
+    // one reaches every repo the account can touch. Warn, but do not block:
+    // the token still works, and the owner may have reasons.
+    if (!value.startsWith('github_pat_')) {
+      showBanner('warn', 'This does not look like a fine-grained token (it should start with github_pat_). It will work, but a fine-grained token limited to this one repo is much safer. Consider replacing it.');
+      return;
+    }
+    clearBanner();
+  }
+
+  function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    tokenInput.value = '';
+    updateTokenStatus();
+    updateButtonStates();
+  }
+
+  function updateButtonStates() {
+    const token = getToken();
+    dryRunBtn.disabled = !dataLoaded;
+    saveBtn.disabled = !dataLoaded || !token;
+  }
+
+  // ---- load ------------------------------------------------------------
+
+  async function load() {
+    reloadBtn.disabled = true;
+    dryRunBtn.disabled = true;
+    saveBtn.disabled = true;
+    showBanner('info', 'Loading project data from GitHub…');
+
+    const token = getToken();
+    const headers = { 'Accept': 'application/vnd.github+json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    let res;
+    try {
+      res = await fetch(
+        'https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH + '?ref=main',
+        { headers }
+      );
+    } catch (err) {
+      showBanner('error', 'Could not reach GitHub. Check your connection, then press Reload.');
+      reloadBtn.disabled = false;
+      return;
+    }
+
+    if (res.status === 403 && !token) {
+      showBanner('warn', 'Anonymous loading is rate-limited from this network. Paste your token above and press Reload.');
+      reloadBtn.disabled = false;
+      return;
+    }
+    if (res.status === 401 || res.status === 403) {
+      showBanner('error', 'GitHub rejected the token while loading. Check that it has not expired and that it has Contents read and write access, then press Reload.');
+      reloadBtn.disabled = false;
+      return;
+    }
+    if (!res.ok) {
+      showBanner('error', 'GitHub returned an error (' + res.status + ') while loading. Press Reload to try again.');
+      reloadBtn.disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+    sha = data.sha;
+    html = base64ToUtf8(data.content);
+
+    const openIdx = html.indexOf(OPEN_TAG);
+    if (openIdx === -1) {
+      showBanner('error', 'Could not find the project data block in index.html. The file structure may have changed; stop and check with whoever set this tool up.');
+      reloadBtn.disabled = false;
+      return;
+    }
+    jsonStart = openIdx + OPEN_TAG.length;
+    const closeIdx = html.indexOf(CLOSE_TAG, jsonStart);
+    if (closeIdx === -1) {
+      showBanner('error', 'Could not find the end of the project data block in index.html. Stop and check with whoever set this tool up.');
+      reloadBtn.disabled = false;
+      return;
+    }
+    jsonEnd = closeIdx;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(html.slice(jsonStart, jsonEnd));
+    } catch (err) {
+      showBanner('error', 'The project data in index.html did not parse as JSON (' + escHtml(err.message) + '). Stop and check with whoever set this tool up.');
+      reloadBtn.disabled = false;
+      return;
+    }
+
+    projects = parsed;
+    loadedProjects = JSON.parse(JSON.stringify(parsed));
+    dataLoaded = true;
+    dryRunPanel.hidden = true;
+    buildForm();
+    clearBanner();
+    reloadBtn.disabled = false;
+    updateButtonStates();
+  }
+
+  // ---- form --------------------------------------------------------
+
+  function blockFormHTML(pi, si, bi, b) {
+    const path = pi + '.sections.' + si + '.blocks.' + bi;
+    if (b.type === 'ul') {
+      return '' +
+        '<label>List block ' + (bi + 1) + ' (one item per line)' +
+        '<textarea data-bind="' + path + '.items" rows="4">' + escHtml((b.items || []).join('\n')) + '</textarea>' +
+        '</label>' +
+        '<span class="field-error" id="err-' + path + '.items"></span>';
+    }
+    return '' +
+      '<label>Paragraph block ' + (bi + 1) + ' (HTML as it appears on the live page)' +
+      '<textarea data-bind="' + path + '.html" rows="4">' + escHtml(b.html) + '</textarea>' +
+      '</label>' +
+      '<span class="field-error" id="err-' + path + '.html"></span>';
+  }
+
+  function sectionFormHTML(pi, si, s) {
+    return '' +
+      '<fieldset class="section-fields">' +
+      '<legend>Section ' + (si + 1) + '</legend>' +
+      '<label>Heading' +
+      '<input type="text" data-bind="' + pi + '.sections.' + si + '.heading" value="' + escAttr(s.heading) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.sections.' + si + '.heading"></span>' +
+      s.blocks.map((b, bi) => blockFormHTML(pi, si, bi, b)).join('') +
+      '</fieldset>';
+  }
+
+  function exhibitFormHTML(pi, ei, ex) {
+    const path = pi + '.exhibits.' + ei;
+    return '' +
+      '<fieldset class="exhibit-fields">' +
+      '<legend>Exhibit ' + (ei + 1) + '</legend>' +
+      '<img src="' + escAttr(ex.image) + '" alt="" width="160" loading="lazy" decoding="async">' +
+      '<div class="readonly-row"><span>image</span><code>' + escHtml(ex.image) + '</code></div>' +
+      '<div class="readonly-row"><span>size</span><code>' + escHtml(ex.width) + ' × ' + escHtml(ex.height) + '</code></div>' +
+      '<label>Alt text' +
+      '<input type="text" data-bind="' + path + '.alt" value="' + escAttr(ex.alt) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + path + '.alt"></span>' +
+      '</fieldset>';
+  }
+
+  function projectFormHTML(pi, p) {
+    return '' +
+      '<details class="project" open>' +
+      '<summary>' + escHtml(p.projectNumber) + ' · ' + escHtml(p.title) + '</summary>' +
+      '<div class="project-body">' +
+      '<div class="readonly-row"><span>id</span><code>' + escHtml(p.id) + '</code></div>' +
+      '<div class="readonly-row"><span>path</span><code>' + escHtml(p.path) + '</code></div>' +
+      '<div class="readonly-row"><span>sceneId</span><code>' + escHtml(p.sceneId) + '</code></div>' +
+
+      '<label>Title' +
+      '<input type="text" data-bind="' + pi + '.title" value="' + escAttr(p.title) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.title"></span>' +
+
+      '<label>Project number' +
+      '<input type="text" data-bind="' + pi + '.projectNumber" value="' + escAttr(p.projectNumber) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.projectNumber"></span>' +
+
+      '<fieldset>' +
+      '<legend>Status</legend>' +
+      '<label>Dossier status text' +
+      '<input type="text" data-bind="' + pi + '.status.dossierText" value="' + escAttr(p.status.dossierText) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.status.dossierText"></span>' +
+      '<label><input type="checkbox" data-bind="' + pi + '.status.live"' + (p.status.live ? ' checked' : '') + '> Live</label>' +
+      '<label>Index status text' +
+      '<input type="text" data-bind="' + pi + '.status.indexText" value="' + escAttr(p.status.indexText) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.status.indexText"></span>' +
+      '<label>Index status class' +
+      '<input type="text" data-bind="' + pi + '.status.indexClass" value="' + escAttr(p.status.indexClass) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.status.indexClass"></span>' +
+      '</fieldset>' +
+
+      p.sections.map((s, si) => sectionFormHTML(pi, si, s)).join('') +
+
+      p.exhibits.map((ex, ei) => exhibitFormHTML(pi, ei, ex)).join('') +
+
+      '<fieldset>' +
+      '<legend>Link</legend>' +
+      '<label>URL' +
+      '<input type="text" data-bind="' + pi + '.link.url" value="' + escAttr(p.link.url) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.link.url"></span>' +
+      '<label>Text' +
+      '<input type="text" data-bind="' + pi + '.link.text" value="' + escAttr(p.link.text) + '">' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.link.text"></span>' +
+      '</fieldset>' +
+
+      '<label>Index card description' +
+      '<textarea data-bind="' + pi + '.indexCard.desc" rows="3">' + escHtml(p.indexCard.desc) + '</textarea>' +
+      '</label>' +
+      '<span class="field-error" id="err-' + pi + '.indexCard.desc"></span>' +
+
+      '</div>' +
+      '</details>';
+  }
+
+  function buildForm() {
+    projectsEl.innerHTML = projects.map((p, pi) => projectFormHTML(pi, p)).join('');
+    projectsEl.querySelectorAll('[data-bind]').forEach((elm) => {
+      const path = elm.dataset.bind;
+      const onChange = () => {
+        if (elm.type === 'checkbox') {
+          setPath(projects, path, elm.checked);
+        } else if (path.endsWith('.items')) {
+          setPath(projects, path, elm.value.split('\n'));
+        } else {
+          setPath(projects, path, elm.value);
+        }
+        renderErrors(validateAll());
+      };
+      elm.addEventListener('input', onChange);
+      if (elm.type === 'checkbox') elm.addEventListener('change', onChange);
+    });
+  }
+
+  // ---- validate ------------------------------------------------------
+
+  function requireField(errors, path, value, message) {
+    if (!trimmed(value)) errors[path] = message;
+  }
+
+  // Mirrors scripts/check-project-data.mjs, but stricter wherever the form
+  // lets Jared leave something blank: the check script only guards against
+  // fields being entirely absent, this guards against them being emptied.
+  function validateAll() {
+    const errors = {};
+    projects.forEach((p, pi) => {
+      requireField(errors, pi + '.title', p.title, 'Title is required.');
+      requireField(errors, pi + '.projectNumber', p.projectNumber, 'Project number is required.');
+      requireField(errors, pi + '.status.dossierText', p.status.dossierText, 'Dossier status text is required.');
+      requireField(errors, pi + '.status.indexText', p.status.indexText, 'Index status text is required.');
+      requireField(errors, pi + '.status.indexClass', p.status.indexClass, 'Status class is required.');
+      // The dossier pill reads the Live checkbox but the index card and the
+      // About page tally read the free-text status class, so the two must
+      // agree on liveness or the site contradicts itself with no other
+      // warning. Catch the mismatch here.
+      const classSaysLive = /\blive\b/.test(trimmed(p.status.indexClass));
+      if (p.status.live && !classSaysLive) {
+        errors[pi + '.status.indexClass'] = 'Live is ticked, so the status class should be the live one (it should contain "live").';
+      } else if (!p.status.live && classSaysLive) {
+        errors[pi + '.status.indexClass'] = 'The status class says live but the Live box is not ticked. Make them agree.';
+      }
+
+      p.sections.forEach((s, si) => {
+        requireField(errors, pi + '.sections.' + si + '.heading', s.heading, 'Section heading is required.');
+        s.blocks.forEach((b, bi) => {
+          const path = pi + '.sections.' + si + '.blocks.' + bi;
+          if (b.type === 'ul') {
+            const nonBlank = (b.items || []).map(trimmed).filter(Boolean);
+            if (nonBlank.length === 0) errors[path + '.items'] = 'At least one non-blank list item is required.';
+          } else {
+            requireField(errors, path + '.html', b.html, 'Paragraph text is required.');
+          }
+        });
+      });
+
+      p.exhibits.forEach((ex, ei) => {
+        requireField(errors, pi + '.exhibits.' + ei + '.alt', ex.alt, 'Alt text is required.');
+      });
+
+      const url = trimmed(p.link.url);
+      if (!url) {
+        errors[pi + '.link.url'] = 'Link URL is required.';
+      } else if (!url.startsWith('https://')) {
+        errors[pi + '.link.url'] = 'Link URL must start with https://';
+      }
+      requireField(errors, pi + '.link.text', p.link.text, 'Link text is required.');
+      requireField(errors, pi + '.indexCard.desc', p.indexCard.desc, 'Index card description is required.');
+    });
+    return errors;
+  }
+
+  function renderErrors(errors) {
+    document.querySelectorAll('.field-error').forEach((span) => { span.textContent = ''; });
+    Object.keys(errors).forEach((path) => {
+      const span = document.getElementById('err-' + path);
+      if (span) span.textContent = errors[path];
+    });
+    return errors;
+  }
+
+  // ---- serialize + splice ---------------------------------------------
+
+  // Same escaping rule as the site's own render script and check-project-data.mjs:
+  // every literal "</" inside the JSON has to become "<\/", or a closing
+  // script sequence landing inside a copy string would truncate the data
+  // block in the browser.
+  // Trims every string and drops blank list lines, so a stray trailing space
+  // in a field or a blank line at the end of a bullet list never reaches the
+  // live site (validation checks trimmed values, but the model stores raw
+  // keystrokes so the cursor is not fought mid-edit; this cleans up at the
+  // one point that matters, serialisation). Returns a deep clean copy; the
+  // editable model is left untouched.
+  function cleanCopy(list) {
+    return list.map((p) => {
+      const c = JSON.parse(JSON.stringify(p));
+      const trimStrings = (node) => {
+        if (typeof node === 'string') return node.trim();
+        if (Array.isArray(node)) return node.map(trimStrings);
+        if (node && typeof node === 'object') {
+          Object.keys(node).forEach((k) => { node[k] = trimStrings(node[k]); });
+          return node;
+        }
+        return node;
+      };
+      trimStrings(c);
+      (c.sections || []).forEach((s) => {
+        (s.blocks || []).forEach((b) => {
+          if (b.type === 'ul' && Array.isArray(b.items)) {
+            b.items = b.items.filter((item) => item.length > 0);
+          }
+        });
+      });
+      return c;
+    });
+  }
+
+  function buildFileText() {
+    const plain = JSON.stringify(cleanCopy(projects), null, 2);
+    const escaped = plain.split('</').join('<\\/');
+    if (escaped.includes('</')) {
+      throw new Error('escaping left a raw "</" in the JSON');
+    }
+    try {
+      JSON.parse(escaped);
+    } catch (err) {
+      throw new Error('the escaped JSON failed to parse back (' + err.message + ')');
+    }
+    const full = html.slice(0, jsonStart) + '\n' + escaped + '\n' + html.slice(jsonEnd);
+    return { full: full, jsonText: escaped };
+  }
+
+  // Compares the live, editable projects array against the copy taken at
+  // load (or last save) time, so Dry run can tell Jared what actually moved
+  // without him having to read the whole JSON block to spot it.
+  function diffPaths(a, b, prefix) {
+    if (Array.isArray(a) || Array.isArray(b)) {
+      const arrA = Array.isArray(a) ? a : [];
+      const arrB = Array.isArray(b) ? b : [];
+      const allPrimitive = arrA.every((x) => typeof x !== 'object') && arrB.every((x) => typeof x !== 'object');
+      if (allPrimitive) {
+        return JSON.stringify(arrA) === JSON.stringify(arrB) ? [] : [prefix];
+      }
+      let out = [];
+      const len = Math.max(arrA.length, arrB.length);
+      for (let i = 0; i < len; i++) {
+        out = out.concat(diffPaths(arrA[i], arrB[i], prefix ? prefix + '.' + i : String(i)));
+      }
+      return out;
+    }
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+      let out = [];
+      for (const key of Object.keys(a)) {
+        out = out.concat(diffPaths(a[key], b[key], prefix ? prefix + '.' + key : key));
+      }
+      return out;
+    }
+    return a === b ? [] : [prefix];
+  }
+
+  function summariseDiff() {
+    const paths = diffPaths(projects, loadedProjects, '');
+    if (paths.length === 0) return 'No fields changed since load.';
+    const labelled = paths.map((p) => {
+      const parts = p.split('.');
+      const pi = Number(parts[0]);
+      if (projects[pi] && projects[pi].id) parts[0] = projects[pi].id;
+      return parts.join('.');
+    });
+    return labelled.length + ' field(s) changed: ' + labelled.join(', ');
+  }
+
+  // ---- dry run / save --------------------------------------------------
+
+  function dryRun() {
+    const errors = renderErrors(validateAll());
+    if (Object.keys(errors).length > 0) {
+      showBanner('error', 'Fix the highlighted fields before running a dry run.');
+      return;
+    }
+    let built;
+    try {
+      built = buildFileText();
+    } catch (err) {
+      showBanner('error', 'Could not prepare the file safely: ' + escHtml(err.message) + '. Nothing was changed.');
+      return;
+    }
+    dryRunSummary.textContent = summariseDiff();
+    dryRunOutput.textContent = built.jsonText;
+    dryRunPanel.hidden = false;
+    clearBanner();
+  }
+
+  async function save() {
+    const errors = renderErrors(validateAll());
+    if (Object.keys(errors).length > 0) {
+      showBanner('error', 'Fix the highlighted fields before saving.');
+      return;
+    }
+    const token = getToken();
+    if (!token || !sha) {
+      showBanner('error', 'Connect a token and load the file before saving.');
+      return;
+    }
+    let built;
+    try {
+      built = buildFileText();
+    } catch (err) {
+      showBanner('error', 'Could not prepare the file safely: ' + escHtml(err.message) + '. Nothing was sent.');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    showBanner('info', 'Saving to GitHub…');
+
+    let res;
+    try {
+      res = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + FILE_PATH, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Edit project copy via /admin',
+          content: utf8ToBase64(built.full),
+          sha: sha,
+          branch: 'main'
+        })
+      });
+    } catch (err) {
+      showBanner('error', 'Could not reach GitHub. Check your connection, then press Save again.');
+      updateButtonStates();
+      return;
+    }
+
+    if (res.status === 200 || res.status === 201) {
+      // The commit already succeeded at this point. If the body fails to
+      // parse (a truncated connection, a proxy), keep the old sha and still
+      // report success, rather than throwing and leaving the button stuck on
+      // "Saving". The next Reload picks up the true latest sha.
+      let data = null;
+      try { data = await res.json(); } catch (err) { data = null; }
+      sha = (data && data.content && data.content.sha) ? data.content.sha : sha;
+      html = built.full;
+      loadedProjects = JSON.parse(JSON.stringify(projects));
+      showBanner(
+        'success',
+        'Saved. The site redeploys automatically in about a minute. ' +
+        '<a href="https://github.com/jaredjeromechan-cmd/jaredchan-ai/actions" target="_blank" rel="noopener">Watch the deploy on GitHub Actions</a>.'
+      );
+      updateButtonStates();
+      return;
+    }
+
+    if (res.status === 409) {
+      showBanner(
+        'conflict',
+        'Someone else changed this file since you loaded it. Your edits are still on screen but not saved. ' +
+        '<button type="button" id="reload-latest-btn">Reload latest (this discards your edits)</button>'
+      );
+      document.getElementById('reload-latest-btn').addEventListener('click', load);
+      updateButtonStates();
+      return;
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      showBanner('error', 'GitHub rejected the token. Check that it has not expired and that it has Contents read and write access, then reconnect.');
+      updateButtonStates();
+      return;
+    }
+
+    showBanner('error', 'GitHub returned an error (' + res.status + ') while saving. Nothing changed on the site. Press Save to try again.');
+    updateButtonStates();
+  }
+
+  // ---- wire up ---------------------------------------------------------
+
+  connectBtn.addEventListener('click', connectToken);
+  clearTokenBtn.addEventListener('click', clearToken);
+  reloadBtn.addEventListener('click', load);
+  dryRunBtn.addEventListener('click', dryRun);
+  saveBtn.addEventListener('click', save);
+
+  updateTokenStatus();
+  updateButtonStates();
+  load();
+</script>
+</body>
+</html>

@@ -18,6 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      # Guards the project-data block on the way to production. Commits made
+      # through /admin go straight to main without the local pre-deploy check,
+      # so this is the one gate that catches malformed data for every commit,
+      # by hand or by tool. A failure here stops the deploy.
+      - name: Check project data
+        run: node scripts/check-project-data.mjs
       - uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
