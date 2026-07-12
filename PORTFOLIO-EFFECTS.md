@@ -41,7 +41,8 @@ Taste rules: one continuous movement, never a dead beat between two animations. 
 
 All in `portfolio/index.html`, in this order:
 
-- **Head boot script**: stamps `data-scene` on `<html>` before first paint so refreshes never flash the homepage, and `data-arrive` (unless reduced motion) to hold a directly-landed page invisible until its ceremony starts. A 3.5s timeout deletes `data-arrive` so the page can never be stuck hidden if scripts fail.
+- **Head boot script**: stamps `data-scene` on `<html>` before first paint so refreshes never flash the homepage, and `data-arrive` (unless reduced motion) to hold a directly-landed page invisible until its ceremony starts. A 3.5s timeout deletes `data-arrive` so the page can never be stuck hidden if scripts fail. Its known-paths chain is hand-maintained (it runs pre-paint and must never be able to fail), twin of the CSS reveal list.
+- **Project data and the render script** (added 12/07/2026): the three dossiers and their index cards live as JSON in `<script type="application/json" id="project-data">` and are rendered at boot by an inline script that sits after the scene shells and before the CDN loads. Every `</` inside a JSON string is written `<\/`. The router entries and dossier tethers derive from `PROJECTS`; the CSS reveal list and the boot path chain are the only per-project hand edits left. `node scripts/check-project-data.mjs` guards the block and must pass before any deploy that touches it.
 - **CSS**: scene overlays (`.scene`, z 20), the dossier sheet, the desktop constellation media query for `#projects-scene`, `#tether` canvas (z 25), `#fx` canvas (z 30), chrome bands (z 40).
 - **Router**: `SCENES` map (`/projects`, `/projects/exsa`, `/projects/table-23`, `/projects/homebase`, `/about-builder01`), `showScene`/`routeTo` (DOM overlay swap plus history), `openProjects`/`assembleProjects`, `exitToField`, `matterHop`, the popstate ceremony dispatch, `fxSkip`/`fxAbort`, and the direct-landing block with the warm gate. The `data-scene-link` click handler ignores clicks while `warp.active` (the about node stays hittable while `#stage` fades during the dive; without the guard a mid-dive tap forks the ceremony and double-pushes history).
 - **Matter machinery**: `collectSceneDots` (samples every visible character and card border of a scene into dot positions, live from the DOM), `sampleTitleTargets` (pixel-samples a headline into letter-shaped points via an offscreen canvas), `playDissolve` (beat one: page streams into the sphere), `playExhale` (beat two: sphere pays a headline out), `playAssemble` (page-wide exhale, the reverse of dissolve), `revealScene` (body blocks settle top-down with decrypts), `arriveScene` (exhale plus reveal).
@@ -107,6 +108,8 @@ Simulate end to end before handing anything over. The convention:
 ---
 
 ## 8. How to add a new page or effect, in this voice
+
+For a new PROJECT none of the steps below are needed by hand: add an entry to `#project-data`, drop in the exhibit image under a new filename, and add the two hand lines (CSS reveal list, boot path chain). The `project-registrar` agent's checklist covers all of it, including the four-card constellation limit. The steps below are for a genuinely new kind of page.
 
 1. Add the scene markup as a `.scene` overlay, register it in `SCENES`, `SCENE_TITLES`, the boot script's path list, and `firebase.json` rewrites.
 2. Give it the standard arrival: `arriveScene` (exhale headline plus top-down reveal) for a dossier-like page, or an assemble if it is an index-like page.

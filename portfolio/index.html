@@ -206,6 +206,9 @@
      the arrival ceremony takes over (the boot script frees it if the heavy
      scripts never arrive). */
   html[data-arrive] .scene { opacity: 0 !important; transition: none !important; pointer-events: none !important; }
+  /* This list is hand-maintained, one path per project (twin of the boot
+     script's path chain further down), because CSS cannot read the
+     #project-data block without a build step. */
   html[data-scene="/projects"] #projects-scene,
   html[data-scene="/projects/exsa"] #file-exsa,
   html[data-scene="/projects/table-23"] #file-table-23,
@@ -591,12 +594,286 @@
     #about-scene .pwrap > * { grid-column: 2; }
   }
 </style>
+<!-- The three project dossiers, owner-authored trusted copy, lifted verbatim
+     from the markup this replaces. Rendered into the page by the classic
+     script further down (see "THE RENDER SCRIPT"). Inside every "html"
+     string, a literal "</" is written "<\/": still valid JSON, parses back
+     to the same text, and stops the HTML parser from reading this block's
+     own </script> tag as the end of it early. -->
+<script type="application/json" id="project-data">
+[
+  {
+    "id": "exsa",
+    "path": "/projects/exsa",
+    "sceneId": "file-exsa",
+    "projectNumber": "01",
+    "title": "EXSA Portal",
+    "status": {
+      "live": false,
+      "dossierText": "deployed · redacted",
+      "indexText": "deployed · redacted",
+      "indexClass": "status private"
+    },
+    "sections": [
+      {
+        "heading": "The brief",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "Digitise the Excellent Service Awards: Singapore's national service training and awards programme for the F&amp;B sector, run by the Restaurant Association of Singapore and used daily by member companies."
+          }
+        ]
+      },
+      {
+        "heading": "What it replaced",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "A fully manual back office. Thousands of nominations, training schedules, attendance and award tracking lived in spreadsheets, email threads and phone calls between staff and hundreds of companies."
+          }
+        ]
+      },
+      {
+        "heading": "How it works",
+        "blocks": [
+          {
+            "type": "ul",
+            "items": [
+              "Company reps get self-service nominations and scheduling, built for phones in service corridors, not desks.",
+              "Shipped incrementally against real programme deadlines, from zero to a live multi-role platform."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "The machinery",
+        "blocks": [
+          {
+            "type": "ul",
+            "items": [
+              "Auth layer",
+              "Role-based access",
+              "Audit trail"
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "What this proves",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "That an operation drowning in spreadsheets can become one calm portal, without the humans losing the wheel."
+          },
+          {
+            "type": "p",
+            "html": "Want one built for your operation? Requests taken at <a class=\"mail\" href=\"mailto:builder01@jaredchan.ai\">builder01@jaredchan.ai<\/a>"
+          }
+        ]
+      }
+    ],
+    "exhibits": [
+      {
+        "image": "/exhibit-exsa-v3.png",
+        "alt": "EXSA Portal dashboard",
+        "width": 878,
+        "height": 519
+      }
+    ],
+    "link": {
+      "url": "https://ras-exsa-training.web.app",
+      "text": "ras-exsa-training.web.app"
+    },
+    "indexCard": {
+      "desc": "Singapore's national F&amp;B service training &amp; awards, in one portal. Hundreds of spreadsheets, thousands of manual steps &amp; data entries, retired."
+    }
+  },
+  {
+    "id": "table-23",
+    "path": "/projects/table-23",
+    "sceneId": "file-table-23",
+    "projectNumber": "02",
+    "title": "Table 23",
+    "status": {
+      "live": false,
+      "dossierText": "deployed · redacted",
+      "indexText": "deployed · redacted",
+      "indexClass": "status private"
+    },
+    "sections": [
+      {
+        "heading": "The brief",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "A private, invitation-only companion app for a leadership retreat: 25 senior F&amp;B leaders, three days in Saigon. Designed end to end like a flagship consumer app, not just an internal tool."
+          }
+        ]
+      },
+      {
+        "heading": "What it replaced",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "The WhatsApp group, the PDF itinerary, toggling across multiple apps, the email chains, the photo dump and the flip chart. One calm surface that knows what day it is and changes shape as the trip unfolds."
+          }
+        ]
+      },
+      {
+        "heading": "How it works",
+        "blocks": [
+          {
+            "type": "ul",
+            "items": [
+              "AI as infrastructure, not a gimmick: server-side agents with real governance. A narrow concierge for guests, a strategy curator for organisers.",
+              "Synthesis is schema-validated and cites real contributions. Every call logged, nothing client-side.",
+              "Product restraint throughout: no group chats, no toggling across multiple channels, tastefully designed, phased access."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "The machinery",
+        "blocks": [
+          {
+            "type": "ul",
+            "items": [
+              "Auth with an allow-list",
+              "Governed agents",
+              "Phase-triggered content"
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "What this proves",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "That a tool for 25 people deserves the same finish as one for thousands. Small, bespoke, fast, without cutting the corners that matter."
+          },
+          {
+            "type": "p",
+            "html": "Want one built for your operation? Requests taken at <a class=\"mail\" href=\"mailto:builder01@jaredchan.ai\">builder01@jaredchan.ai<\/a>"
+          }
+        ]
+      }
+    ],
+    "exhibits": [
+      {
+        "image": "/exhibit-table-23-v3.png",
+        "alt": "Table 23 home screen",
+        "width": 878,
+        "height": 519
+      }
+    ],
+    "link": {
+      "url": "https://ras-table-23.web.app",
+      "text": "ras-table-23.web.app"
+    },
+    "indexCard": {
+      "desc": "Bespoke, invitation-only retreat app for senior F&amp;B leadership. AI assisted working sessions, synthesised discussion topics from user-generated contributions."
+    }
+  },
+  {
+    "id": "homebase",
+    "path": "/projects/homebase",
+    "sceneId": "file-homebase",
+    "projectNumber": "03",
+    "title": "Homebase",
+    "status": {
+      "live": true,
+      "dossierText": "live · onboard now",
+      "indexText": "live",
+      "indexClass": "status live"
+    },
+    "sections": [
+      {
+        "heading": "The brief",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "One calm shared space for a family's logistics: who's got the kids, what's on tonight, what needs someone. Phone-first, grandparent-proof, and glanceable from a school gate."
+          }
+        ]
+      },
+      {
+        "heading": "What it replaced",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "The WhatsApp scroll. Pickups negotiated across a hundred-message thread, dinner plans buried, cover requests lost between the memes. The chat never answered anything at a glance; now a glance is all it takes."
+          }
+        ]
+      },
+      {
+        "heading": "How it works",
+        "blocks": [
+          {
+            "type": "ul",
+            "items": [
+              "Per-child schedules, recurring and one-off, with a coverage roster that knows which grandparent has Thursday.",
+              "An integrated Telegram butler nudges the right person at the right moment: cover requests, pick-ups, dinner changes.",
+              "Multiple tiers of access: everyone sees exactly what they need to, and nothing they don't. Confusion never makes the roster."
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "The machinery",
+        "blocks": [
+          {
+            "type": "ul",
+            "items": [
+              "Auth with an allow-list",
+              "Server-side bot",
+              "Tiered permissions"
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "What this proves",
+        "blocks": [
+          {
+            "type": "p",
+            "html": "That family logistics is an operations problem in pyjamas, and it deserves real software. Built for one household and designed for any: members, tiers and routines are data, not hardcode. All so everyone can be in the room, mind and body, instead of in the thread."
+          },
+          {
+            "type": "p",
+            "html": "Want Homebase for your household? Requests taken at <a class=\"mail\" href=\"mailto:builder01@jaredchan.ai\">builder01@jaredchan.ai<\/a>"
+          }
+        ]
+      }
+    ],
+    "exhibits": [
+      {
+        "image": "/exhibit-homebase-v3.png",
+        "alt": "Homebase sign-in",
+        "width": 880,
+        "height": 519
+      }
+    ],
+    "link": {
+      "url": "https://chan-teo.com",
+      "text": "chan-teo.com"
+    },
+    "indexCard": {
+      "desc": "A family's shared space. Who's got the kids, what's on, what needs doing: schedules, cover and dinner in one calm feed with an integrated butler."
+    }
+  }
+]
+</script>
 <script>
   // Refreshing or sharing a scene URL: mark <html> before anything paints,
   // so the CSS above holds the right scene up while the big scripts at the
   // bottom of the page are still on their way. The router syncs this later.
   (function () {
     const p = location.pathname.replace(/\/$/, '');
+    // This chain is hand-maintained, one path per project (twin of the CSS
+    // reveal list further up), because this code runs before first paint
+    // and must never be able to fail: it cannot afford to parse the
+    // #project-data block to discover paths at boot time.
     if (p === '/projects' || p === '/projects/exsa' || p === '/projects/table-23' || p === '/projects/homebase' || p === '/about-builder01') {
       document.documentElement.dataset.scene = p;
       // Direct landings replay the arrival ceremony once the engine is
@@ -638,36 +915,6 @@
     <p class="ptagline">Want a custom-built solution? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
 
     <div class="plist">
-      <a class="entry" href="/projects/exsa" data-scene-link>
-        <div class="top">
-          <span>PROJECT 01</span>
-          <span class="status private"><span class="dot"></span>deployed · redacted</span>
-        </div>
-        <div class="name" data-text="EXSA Portal">EXSA Portal</div>
-        <div class="desc">Singapore's national F&amp;B service training &amp; awards, in one portal. Hundreds of spreadsheets, thousands of manual steps &amp; data entries, retired.</div>
-        <div class="go">open <span class="arr">→</span></div>
-      </a>
-
-      <a class="entry" href="/projects/table-23" data-scene-link>
-        <div class="top">
-          <span>PROJECT 02</span>
-          <span class="status private"><span class="dot"></span>deployed · redacted</span>
-        </div>
-        <div class="name" data-text="Table 23">Table 23</div>
-        <div class="desc">Bespoke, invitation-only retreat app for senior F&amp;B leadership. AI assisted working sessions, synthesised discussion topics from user-generated contributions.</div>
-        <div class="go">open <span class="arr">→</span></div>
-      </a>
-
-      <a class="entry" href="/projects/homebase" data-scene-link>
-        <div class="top">
-          <span>PROJECT 03</span>
-          <span class="status live"><span class="dot"></span>live</span>
-        </div>
-        <div class="name" data-text="Homebase">Homebase</div>
-        <div class="desc">A family's shared space. Who's got the kids, what's on, what needs doing: schedules, cover and dinner in one calm feed with an integrated butler.</div>
-        <div class="go">open <span class="arr">→</span></div>
-      </a>
-
       <div class="entry soon">
         <div class="top">
           <span>PROJECT 04</span>
@@ -683,172 +930,14 @@
   </div>
 </div>
 
-<div class="scene" id="file-exsa">
-  <div class="pwrap has-exhibits">
-    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
-    <div class="sheet">
-    <div class="pkicker">jared // project 01</div>
-    <h1>EXSA Portal</h1>
-    <div class="pstatus"><span class="pdot"></span>deployed · redacted</div>
+<!-- Rendered from #project-data at boot (see the render script after the
+     scene markup below), so a dossier's content lives in one place, not
+     duplicated between here and the index card. -->
+<div class="scene" id="file-exsa"></div>
 
-    <div class="section">
-      <h2>The brief</h2>
-      <p>Digitise the Excellent Service Awards: Singapore's national service training and awards programme for the F&amp;B sector, run by the Restaurant Association of Singapore and used daily by member companies.</p>
-    </div>
+<div class="scene" id="file-table-23"></div>
 
-    <div class="section">
-      <h2>What it replaced</h2>
-      <p>A fully manual back office. Thousands of nominations, training schedules, attendance and award tracking lived in spreadsheets, email threads and phone calls between staff and hundreds of companies.</p>
-    </div>
-
-    <div class="section">
-      <h2>How it works</h2>
-      <ul>
-        <li>Company reps get self-service nominations and scheduling, built for phones in service corridors, not desks.</li>
-        <li>Shipped incrementally against real programme deadlines, from zero to a live multi-role platform.</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2>The machinery</h2>
-      <ul>
-        <li>Auth layer</li>
-        <li>Role-based access</li>
-        <li>Audit trail</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2>What this proves</h2>
-      <p>That an operation drowning in spreadsheets can become one calm portal, without the humans losing the wheel.</p>
-      <p>Want one built for your operation? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
-    </div>
-    </div>
-
-    <div class="exhibits">
-      <figure class="exhibit">
-        <img src="/exhibit-exsa-v3.png" alt="EXSA Portal dashboard" width="878" height="519" loading="lazy" decoding="async">
-      </figure>
-      <a class="exhibit-link" href="https://ras-exsa-training.web.app" target="_blank" rel="noopener">ras-exsa-training.web.app</a>
-    </div>
-
-    <a class="pback" href="/projects" data-scene-link>← all projects</a>
-  </div>
-
-  <a class="exhibit-link link-node" href="https://ras-exsa-training.web.app" target="_blank" rel="noopener" data-text="ras-exsa-training.web.app">ras-exsa-training.web.app</a>
-</div>
-
-<div class="scene" id="file-table-23">
-  <div class="pwrap has-exhibits">
-    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
-    <div class="sheet">
-    <div class="pkicker">jared // project 02</div>
-    <h1>Table 23</h1>
-    <div class="pstatus"><span class="pdot"></span>deployed · redacted</div>
-
-    <div class="section">
-      <h2>The brief</h2>
-      <p>A private, invitation-only companion app for a leadership retreat: 25 senior F&amp;B leaders, three days in Saigon. Designed end to end like a flagship consumer app, not just an internal tool.</p>
-    </div>
-
-    <div class="section">
-      <h2>What it replaced</h2>
-      <p>The WhatsApp group, the PDF itinerary, toggling across multiple apps, the email chains, the photo dump and the flip chart. One calm surface that knows what day it is and changes shape as the trip unfolds.</p>
-    </div>
-
-    <div class="section">
-      <h2>How it works</h2>
-      <ul>
-        <li>AI as infrastructure, not a gimmick: server-side agents with real governance. A narrow concierge for guests, a strategy curator for organisers.</li>
-        <li>Synthesis is schema-validated and cites real contributions. Every call logged, nothing client-side.</li>
-        <li>Product restraint throughout: no group chats, no toggling across multiple channels, tastefully designed, phased access.</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2>The machinery</h2>
-      <ul>
-        <li>Auth with an allow-list</li>
-        <li>Governed agents</li>
-        <li>Phase-triggered content</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2>What this proves</h2>
-      <p>That a tool for 25 people deserves the same finish as one for thousands. Small, bespoke, fast, without cutting the corners that matter.</p>
-      <p>Want one built for your operation? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
-    </div>
-    </div>
-
-    <div class="exhibits">
-      <figure class="exhibit">
-        <img src="/exhibit-table-23-v3.png" alt="Table 23 home screen" width="878" height="519" loading="lazy" decoding="async">
-      </figure>
-      <a class="exhibit-link" href="https://ras-table-23.web.app" target="_blank" rel="noopener">ras-table-23.web.app</a>
-    </div>
-
-    <a class="pback" href="/projects" data-scene-link>← all projects</a>
-  </div>
-
-  <a class="exhibit-link link-node" href="https://ras-table-23.web.app" target="_blank" rel="noopener" data-text="ras-table-23.web.app">ras-table-23.web.app</a>
-</div>
-
-<div class="scene" id="file-homebase">
-  <div class="pwrap has-exhibits">
-    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
-    <div class="sheet">
-    <div class="pkicker">jared // project 03</div>
-    <h1>Homebase</h1>
-    <div class="pstatus live"><span class="pdot"></span>live · onboard now</div>
-
-    <div class="section">
-      <h2>The brief</h2>
-      <p>One calm shared space for a family's logistics: who's got the kids, what's on tonight, what needs someone. Phone-first, grandparent-proof, and glanceable from a school gate.</p>
-    </div>
-
-    <div class="section">
-      <h2>What it replaced</h2>
-      <p>The WhatsApp scroll. Pickups negotiated across a hundred-message thread, dinner plans buried, cover requests lost between the memes. The chat never answered anything at a glance; now a glance is all it takes.</p>
-    </div>
-
-    <div class="section">
-      <h2>How it works</h2>
-      <ul>
-        <li>Per-child schedules, recurring and one-off, with a coverage roster that knows which grandparent has Thursday.</li>
-        <li>An integrated Telegram butler nudges the right person at the right moment: cover requests, pick-ups, dinner changes.</li>
-        <li>Multiple tiers of access: everyone sees exactly what they need to, and nothing they don't. Confusion never makes the roster.</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2>The machinery</h2>
-      <ul>
-        <li>Auth with an allow-list</li>
-        <li>Server-side bot</li>
-        <li>Tiered permissions</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2>What this proves</h2>
-      <p>That family logistics is an operations problem in pyjamas, and it deserves real software. Built for one household and designed for any: members, tiers and routines are data, not hardcode. All so everyone can be in the room, mind and body, instead of in the thread.</p>
-      <p>Want Homebase for your household? Requests taken at <a class="mail" href="mailto:builder01@jaredchan.ai">builder01@jaredchan.ai</a></p>
-    </div>
-    </div>
-
-    <div class="exhibits">
-      <figure class="exhibit">
-        <img src="/exhibit-homebase-v3.png" alt="Homebase sign-in" width="880" height="519" loading="lazy" decoding="async">
-      </figure>
-      <a class="exhibit-link" href="https://chan-teo.com" target="_blank" rel="noopener">chan-teo.com</a>
-    </div>
-
-    <a class="pback" href="/projects" data-scene-link>← all projects</a>
-  </div>
-
-  <a class="exhibit-link link-node" href="https://chan-teo.com" target="_blank" rel="noopener" data-text="chan-teo.com">chan-teo.com</a>
-</div>
+<div class="scene" id="file-homebase"></div>
 
 <div class="scene" id="about-scene">
   <div class="pwrap">
@@ -898,6 +987,107 @@
     <a class="pback" href="/" data-scene-link>← back to the field</a>
   </div>
 </div>
+
+<script>
+  // THE RENDER SCRIPT
+  // Turns #project-data into the three dossier scenes above and the index
+  // cards inside #projects-scene. Runs synchronously, right after the scene
+  // markup and before any CDN script, so the page's real content exists
+  // before anything that could fail to load even gets a chance to.
+  //
+  // Wrapped whole in try/catch: the page's content now depends on this
+  // script, so a malformed data block must not also take down the sphere
+  // and router scripts that load after it. A loud console error is the
+  // signal something needs fixing, not a blank page.
+  // Deliberately var, not const-in-the-try: the router and the tether wiring
+  // in the main script read this. On a data failure they must see an empty
+  // list and keep booting, not hit a ReferenceError that kills the sphere.
+  var PROJECTS = [];
+  try {
+    PROJECTS = JSON.parse(document.getElementById('project-data').textContent);
+
+    // Quotes and ampersands are the only characters that matter inside an
+    // HTML attribute value here; everything interpolated into one goes
+    // through this first.
+    function escAttr(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    }
+
+    function blockHTML(block) {
+      if (block.type === 'ul') {
+        return '<ul>' + block.items.map((item) => `<li>${item}</li>`).join('') + '</ul>';
+      }
+      return `<p>${block.html}</p>`;
+    }
+
+    function sectionHTML(section) {
+      return `<div class="section"><h2>${section.heading}</h2>${section.blocks.map(blockHTML).join('')}</div>`;
+    }
+
+    // Reproduces the exact dossier structure the three case files used to
+    // hand-author: .pwrap.has-exhibits with its top and bottom back links,
+    // a .sheet of sections, the exhibit plate, and the floating link-node
+    // riding alongside as a sibling of .pwrap. The matter transitions and
+    // tethers below measure this DOM live, so as long as the classes and
+    // nesting match, they behave identically to the old markup.
+    function dossierHTML(p) {
+      const statusClass = p.status.live ? 'pstatus live' : 'pstatus';
+      // The inline link copy belongs to the project, not to each exhibit, so
+      // it sits once after all the figures; a second exhibit in the array
+      // must not duplicate it.
+      const exhibitsHTML = p.exhibits.map((ex) => `
+      <figure class="exhibit">
+        <img src="${escAttr(ex.image)}" alt="${escAttr(ex.alt)}" width="${ex.width}" height="${ex.height}" loading="lazy" decoding="async">
+      </figure>`).join('') + `
+      <a class="exhibit-link" href="${escAttr(p.link.url)}" target="_blank" rel="noopener">${p.link.text}</a>`;
+      return `
+  <div class="pwrap has-exhibits">
+    <a class="pback ptop" href="/projects" data-scene-link>← all projects</a>
+    <div class="sheet">
+    <div class="pkicker">jared // project ${p.projectNumber}</div>
+    <h1>${p.title}</h1>
+    <div class="${statusClass}"><span class="pdot"></span>${p.status.dossierText}</div>
+
+    ${p.sections.map(sectionHTML).join('\n    ')}
+    </div>
+
+    <div class="exhibits">${exhibitsHTML}
+    </div>
+
+    <a class="pback" href="/projects" data-scene-link>← all projects</a>
+  </div>
+
+  <a class="exhibit-link link-node" href="${escAttr(p.link.url)}" target="_blank" rel="noopener" data-text="${escAttr(p.link.text)}">${p.link.text}</a>`;
+    }
+
+    // Reproduces the .entry card exactly: number, title, status span with
+    // its own class, description, the open arrow. The constellation grid's
+    // nth-child CSS and the tether left/right split both assume four direct
+    // children of .plist in this exact order, which is why the render step
+    // below inserts all three cards in one call, ahead of the hand-written
+    // Classified card.
+    function indexCardHTML(p) {
+      return `
+      <a class="entry" href="${escAttr(p.path)}" data-scene-link>
+        <div class="top">
+          <span>PROJECT ${p.projectNumber}</span>
+          <span class="${escAttr(p.status.indexClass)}"><span class="dot"></span>${p.status.indexText}</span>
+        </div>
+        <div class="name" data-text="${escAttr(p.title)}">${p.title}</div>
+        <div class="desc">${p.indexCard.desc}</div>
+        <div class="go">open <span class="arr">→</span></div>
+      </a>`;
+    }
+
+    for (const p of PROJECTS) {
+      document.getElementById(p.sceneId).innerHTML = dossierHTML(p);
+    }
+    const cardsHTML = PROJECTS.map(indexCardHTML).join('');
+    document.querySelector('#projects-scene .plist').insertAdjacentHTML('afterbegin', cardsHTML);
+  } catch (err) {
+    console.error('[project-data] failed to render project dossiers:', err);
+  }
+</script>
 
 <canvas id="tether"></canvas>
 <canvas id="fx"></canvas>
@@ -1130,18 +1320,18 @@
   let sceneDim = 0; // eases toward 1 while any scene is up
   const SCENES = {
     '/projects': document.getElementById('projects-scene'),
-    '/projects/exsa': document.getElementById('file-exsa'),
-    '/projects/table-23': document.getElementById('file-table-23'),
-    '/projects/homebase': document.getElementById('file-homebase'),
     '/about-builder01': document.getElementById('about-scene'),
   };
   const SCENE_TITLES = {
     '/projects': 'J.A.R.E.D :: projects',
-    '/projects/exsa': 'J.A.R.E.D :: EXSA Portal',
-    '/projects/table-23': 'J.A.R.E.D :: Table 23',
-    '/projects/homebase': 'J.A.R.E.D :: Homebase',
     '/about-builder01': 'J.A.R.E.D :: about Builder01',
   };
+  // The project routes come from the data block instead of being listed by
+  // hand here, so this map can never drift from what #project-data ships.
+  for (const p of PROJECTS) {
+    SCENES[p.path] = document.getElementById(p.sceneId);
+    SCENE_TITLES[p.path] = `J.A.R.E.D :: ${p.title}`;
+  }
   let scenePath = null; // null = the field
 
   function showScene(path, push) {
@@ -2054,12 +2244,13 @@
   // Each case file's exhibit holds a particle from the sphere's flank,
   // and its live link above the crown rides its own thread. Both sit
   // left of the sphere's mass, so their lines leave the right edge.
-  [['/projects/exsa', '#file-exsa .exhibit'],
-   ['/projects/exsa', '#file-exsa .link-node'],
-   ['/projects/table-23', '#file-table-23 .exhibit'],
-   ['/projects/table-23', '#file-table-23 .link-node'],
-   ['/projects/homebase', '#file-homebase .exhibit'],
-   ['/projects/homebase', '#file-homebase .link-node']].forEach(([home, sel]) => {
+  // Pairs are derived from the data block (exhibit then link-node, per
+  // project, in data order) instead of hand-listed, so a project added to
+  // #project-data gets its tethers for free.
+  PROJECTS.flatMap((p) => [
+    [p.path, `#${p.sceneId} .exhibit`],
+    [p.path, `#${p.sceneId} .link-node`],
+  ]).forEach(([home, sel]) => {
     const el = document.querySelector(sel);
     if (!el) return;
     tethers.push({
