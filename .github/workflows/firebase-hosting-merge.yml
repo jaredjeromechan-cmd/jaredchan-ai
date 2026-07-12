@@ -1,0 +1,26 @@
+# Deploys portfolio/ to Firebase Hosting on every push to main.
+#
+# This workflow does nothing useful until a FIREBASE_SERVICE_ACCOUNT_JAREDCHAN_AI
+# secret exists in this GitHub repo's settings. Jared creates it by running
+# `firebase init hosting:github` from this directory (logged into the personal
+# account); that command may also generate its own workflow file(s), which
+# should then be deleted so this one is the only deploy path.
+#
+# Once the secret exists, a push to main IS a deploy: the manual
+# `firebase deploy` step in CLAUDE.md retires and this workflow takes over.
+name: Deploy to Firebase Hosting on merge
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JAREDCHAN_AI }}"
+          channelId: live
+          projectId: jaredchan-ai

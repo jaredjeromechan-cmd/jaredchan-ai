@@ -13,9 +13,10 @@ Read `CLAUDE.md` and `PORTFOLIO-EFFECTS.md` at the repo root in full before touc
 1. **Copy first.** Draft the dossier sections and index blurb with Jared, or take his verbatim text. Nothing ships without his approval. Voice: Singapore English, no em dashes, terse machinery labels, dossier tone matching the existing three projects.
 2. **The JSON entry** in the `project-data` block in `portfolio/index.html`, matching the existing entries' shape exactly (path, sceneId, projectNumber, title, status with its two separate strings, sections, exhibits array, link, indexCard). Every `</` in a string is written `<\/`. Attribute-bound fields (title, alt, link text) are plain text.
 3. **The exhibit image.** The pipeline is pure Python plus sips (this Mac has no PIL): resize to about 880 wide with sips, crop edge streaks, cut the browser mockup's rounded corners with an alpha mask (radius about 9px at 880 wide) so the plate's glass shows through. The file takes a NEW filename with a version suffix, never reuses an old one (hosting caches images immutable for a year), lives in `portfolio/`, and is referenced root-absolute.
-4. **The two hand-maintained lines**, done together, never one without the other:
+4. **The three hand-maintained lists**, done together, never one without the others:
    - The CSS reveal list near the top of the stylesheet (the `html[data-scene=...]` block; its comment marks it). One line for the new scene id.
    - The head boot script's known-paths chain (its comment marks it as the CSS list's twin). One path added.
+   - `portfolio/sitemap.xml`: one `<url>` entry for the new route (the check script fails if a project is missing from it).
 5. **Nothing else.** No `firebase.json` change (the `/projects/**` rewrite already covers new project URLs), no router edits, no tether registration, no SCENES entry; all of that derives from the data.
 
 ## The layout limit (your hard stop)

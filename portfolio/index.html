@@ -17,6 +17,33 @@
 <meta property="og:image:height" content="256">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://www.jaredchan.ai/og-image.png">
+<!-- Structured data for search engines: a Person (so "Builder01" resolves
+     to Jared) and a WebSite. Every value here is already public elsewhere
+     on this page; nothing new is being said, just said in a format search
+     engines parse directly. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "name": "Jared Chan",
+      "alternateName": "Builder01",
+      "url": "https://www.jaredchan.ai/",
+      "email": "mailto:builder01@jaredchan.ai"
+    },
+    {
+      "@type": "WebSite",
+      "name": "J.A.R.E.D",
+      "url": "https://www.jaredchan.ai/"
+    }
+  ]
+}
+</script>
+<!-- One file, six URLs: the router keeps this href in sync with whichever
+     scene is live (see updateSEO near showScene) so each route canonicalises
+     to itself instead of every route pointing back at the field. -->
+<link rel="canonical" id="canonical-link" href="https://www.jaredchan.ai/">
 <!-- The adaptive SVG flips black/white with the browser theme; the PNG
      is the fallback for browsers that skip SVG favicons (Safari). -->
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -1334,6 +1361,32 @@
   }
   let scenePath = null; // null = the field
 
+  // The site is one file living on six URLs; a search engine only ever sees
+  // the URL it requested, so the canonical link and meta description have
+  // to track whichever route the router just switched to, the same moment
+  // document.title does. The field, /projects and /about-builder01 keep the
+  // page's shipped default description untouched; a dossier borrows its own
+  // indexCard.desc, which is already-approved copy written for the index
+  // cards. That copy carries HTML entities (it is normally poured into
+  // innerHTML), so it is decoded before landing in a plain attribute value,
+  // otherwise visitors would see a literal "&amp;" in search results.
+  const DEFAULT_DESCRIPTION = document.querySelector('meta[name="description"]').content;
+  function decodeEntities(str) {
+    const holder = document.createElement('div');
+    holder.innerHTML = str;
+    return holder.textContent;
+  }
+  function updateSEO(path) {
+    const canonical = document.getElementById('canonical-link');
+    const descTag = document.querySelector('meta[name="description"]');
+    if (canonical) canonical.href = 'https://www.jaredchan.ai' + (path || '/');
+    if (!descTag) return;
+    const project = path && PROJECTS.find((p) => p.path === path);
+    descTag.content = (project && project.indexCard && project.indexCard.desc)
+      ? decodeEntities(project.indexCard.desc)
+      : DEFAULT_DESCRIPTION;
+  }
+
   function showScene(path, push) {
     // Navigating by any other route (back button, skip tap) while a matter
     // transition is mid-flight cancels it and restores a settled page.
@@ -1358,6 +1411,7 @@
     // A matter transition builds the index itself, so it skips the decrypt.
     if (path === '/projects' && !fx.internalNav) decryptIndex();
     document.title = path ? SCENE_TITLES[path] : 'J.A.R.E.D';
+    updateSEO(path);
     try {
       if (push) history.pushState({ p: path }, '', path || '/');
       else history.replaceState({ p: path }, '', path || '/');
@@ -2548,6 +2602,44 @@
     else renderer.render(scene, camera);
   }
   requestAnimationFrame(animate);
+</script>
+<script>
+  // Analytics, off by default. Both switches below start as null, and the
+  // loader below does nothing while they are: no script tag is injected, so
+  // the current Content-Security-Policy in firebase.json needs no changes
+  // and no third party sees a single visitor.
+  //
+  //   ga4: Jared's GA4 measurement ID goes here, e.g. "G-XXXXXXXXXX".
+  //   cloudflareToken: Jared's Cloudflare Web Analytics site token goes here.
+  //
+  // Turning either one on ALSO means editing firebase.json's
+  // Content-Security-Policy header, or the browser blocks the very script
+  // this file just injected:
+  //   script-src   needs: https://www.googletagmanager.com https://static.cloudflareinsights.com
+  //   connect-src  needs: https://*.google-analytics.com https://www.googletagmanager.com https://cloudflareinsights.com
+  const analytics = { ga4: null, cloudflareToken: null };
+
+  function loadAnalytics(cfg) {
+    if (cfg.ga4) {
+      const tag = document.createElement('script');
+      tag.async = true;
+      tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + cfg.ga4;
+      document.head.appendChild(tag);
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', cfg.ga4);
+    }
+    if (cfg.cloudflareToken) {
+      const beacon = document.createElement('script');
+      beacon.defer = true;
+      beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+      beacon.setAttribute('data-cf-beacon', JSON.stringify({ token: cfg.cloudflareToken }));
+      document.head.appendChild(beacon);
+    }
+  }
+
+  if (analytics.ga4 || analytics.cloudflareToken) loadAnalytics(analytics);
 </script>
 </body>
 </html>

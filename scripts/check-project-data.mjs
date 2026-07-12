@@ -70,4 +70,21 @@ for (const p of projects) {
   console.log(`[check-project-data] ok: ${label}`);
 }
 
+// The sitemap is the third hand-maintained per-project list (after the CSS
+// reveal list and the boot path chain). Nothing else would notice a project
+// missing from it, so the drift is caught here.
+const sitemapPath = join(repoRoot, 'portfolio', 'sitemap.xml');
+let sitemap;
+try {
+  sitemap = readFileSync(sitemapPath, 'utf8');
+} catch {
+  fail('portfolio/sitemap.xml is missing');
+}
+for (const p of projects) {
+  if (!sitemap.includes(`https://www.jaredchan.ai${p.path}</loc>`)) {
+    fail(`sitemap.xml has no entry for "${p.path}"; add it alongside the other hand-maintained lists`);
+  }
+}
+console.log('[check-project-data] ok: sitemap lists every project');
+
 process.exit(0);
