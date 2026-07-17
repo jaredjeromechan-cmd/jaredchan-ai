@@ -251,6 +251,15 @@
      art must sit on whole pixels or it blurs. Header and ink run white
      here; the room behind the field is lit differently on purpose. */
   #backrooms-scene h1 { color: #eef5ef; }
+  /* the long title needs a tighter tracking on phones or it runs off the
+     right edge; one line always */
+  @media (max-width: 700px) {
+    #backrooms-scene h1 {
+      font-size: min(6.4vw, 1.6rem);
+      letter-spacing: 0.12em;
+      text-indent: 0.12em;
+    }
+  }
   #backrooms-scene .exhibit.office {
     aspect-ratio: 16 / 9;
     padding: 0;
@@ -2156,7 +2165,9 @@ function initBackroomsOffice(canvas, data, opts) {
     function blit() {
         ctx.save();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.imageSmoothingEnabled = false;
+        // Crisp nearest-neighbour when scaling up; smoothing when the room
+        // has to shrink below 1x, where nearest-neighbour would drop rows.
+        ctx.imageSmoothingEnabled = scale < 1;
         ctx.fillStyle = COLORS.bg;
         ctx.fillRect(0, 0, cssW, cssH);
         ctx.drawImage(buffer, 0, 0, LOGICAL_W, LOGICAL_H, offsetX, offsetY, LOGICAL_W * scale, LOGICAL_H * scale);
@@ -2186,7 +2197,8 @@ function initBackroomsOffice(canvas, data, opts) {
 
             var nativeCx = a.x * scale + offsetX;
             var nativeCy = tagAnchorLogicalY(a) * scale + offsetY;
-            var chipX = Math.round(nativeCx - chipW / 2);
+            // Edge desks must not have their tags sliced off by the canvas.
+            var chipX = Math.round(Math.min(Math.max(nativeCx - chipW / 2, 2), cssW - chipW - 2));
             var chipY = Math.round(nativeCy);
 
             ctx.fillStyle = COLORS.tagBg;
@@ -2279,7 +2291,11 @@ function initBackroomsOffice(canvas, data, opts) {
         ctx.imageSmoothingEnabled = false;
         // Quarter-step scale so the room fills odd-sized canvases more
         // tightly than a whole-integer floor would allow.
-        scale = Math.max(1, Math.floor(Math.min(cssW / LOGICAL_W, cssH / LOGICAL_H) * 4) / 4);
+        var fitScale = Math.min(cssW / LOGICAL_W, cssH / LOGICAL_H);
+        // Quarter-step crisp at 1x and above; below 1x (narrow phones) fit
+        // exactly so the room is never cropped - the blit smooths that
+        // downscale instead of dropping pixel rows.
+        scale = fitScale >= 1 ? Math.floor(fitScale * 4) / 4 : fitScale;
         offsetX = Math.floor((cssW - LOGICAL_W * scale) / 2);
         offsetY = Math.floor((cssH - LOGICAL_H * scale) / 2);
         render();
