@@ -276,8 +276,11 @@
     letter-spacing: 0.06em;
   }
   /* the desktop exhibits rail (sticky, 23vw, sphere-flank margins) is for
-     dossier pages; the office plate stays a full-width figure in the flow */
+     dossier pages; the office plate stays a full-width figure in the flow.
+     The backrooms sheet also runs wider than the 34rem dossier column so
+     the office earns a 2x-plus pixel scale instead of sitting at 1x. */
   @media (min-width: 1100px) {
+    #backrooms-scene .pwrap { max-width: 52rem; }
     #backrooms-scene .exhibits { position: static; top: auto; margin-top: 2.5rem; }
     #backrooms-scene .exhibits .exhibit { width: 100%; margin: 0; }
   }
@@ -1895,7 +1898,11 @@ function initBackroomsOffice(canvas, data, opts) {
         canvas.height = pixelH;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.imageSmoothingEnabled = false;
-        scale = Math.max(1, Math.floor(Math.min(cssW / LOGICAL_W, cssH / LOGICAL_H)));
+        // Quarter-step scaling instead of whole integers: a 1.0-only or
+        // 2.0-only fit was letterboxing up to a fifth of the plate as
+        // empty margin. Nearest-neighbour at x.25 steps keeps the pixel
+        // read while letting the room fill the frame.
+        scale = Math.max(1, Math.floor(Math.min(cssW / LOGICAL_W, cssH / LOGICAL_H) * 4) / 4);
         offsetX = Math.floor((cssW - LOGICAL_W * scale) / 2);
         offsetY = Math.floor((cssH - LOGICAL_H * scale) / 2);
         render();
@@ -2198,6 +2205,12 @@ function initBackroomsOffice(canvas, data, opts) {
   });
 
   renderer.domElement.addEventListener('pointermove', (e) => {
+    // Hovering the revealed resident reads as a link: the hand shows the
+    // face is a door. Only while no press is in flight, so drag keeps
+    // its grabbing fist.
+    if (pointers.size === 0) {
+      renderer.domElement.style.cursor = residentHit(e) ? 'pointer' : 'grab';
+    }
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
