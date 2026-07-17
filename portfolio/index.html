@@ -240,9 +240,46 @@
   html[data-scene="/projects/exsa"] #file-exsa,
   html[data-scene="/projects/table-23"] #file-table-23,
   html[data-scene="/projects/homebase"] #file-homebase,
-  html[data-scene="/about-builder01"] #about-scene {
+  html[data-scene="/about-builder01"] #about-scene,
+  html[data-scene="/backrooms"] #backrooms-scene {
     opacity: 1;
     pointer-events: auto;
+  }
+
+  /* ----- the backrooms: the agency floor behind the field -----
+     The office plate reuses the exhibit glass but never drifts: its pixel
+     art must sit on whole pixels or it blurs. Header and ink run white
+     here; the room behind the field is lit differently on purpose. */
+  #backrooms-scene h1 { color: #eef5ef; }
+  #backrooms-scene .exhibit.office {
+    aspect-ratio: 16 / 9;
+    padding: 0;
+    overflow: hidden;
+  }
+  #backrooms-scene .exhibit.office canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+  }
+  #backrooms-scene .office-caption {
+    min-height: 1.6em;
+    margin-top: 0.8em;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+  #backrooms-scene .roster li { margin-bottom: 0.9em; }
+  #backrooms-scene .roster b {
+    color: #eef5ef;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  /* the desktop exhibits rail (sticky, 23vw, sphere-flank margins) is for
+     dossier pages; the office plate stays a full-width figure in the flow */
+  @media (min-width: 1100px) {
+    #backrooms-scene .exhibits { position: static; top: auto; margin-top: 2.5rem; }
+    #backrooms-scene .exhibits .exhibit { width: 100%; margin: 0; }
   }
 
   /* a live dossier's dot glows and pulses like the card's */
@@ -901,7 +938,7 @@
     // reveal list further up), because this code runs before first paint
     // and must never be able to fail: it cannot afford to parse the
     // #project-data block to discover paths at boot time.
-    if (p === '/projects' || p === '/projects/exsa' || p === '/projects/table-23' || p === '/projects/homebase' || p === '/about-builder01') {
+    if (p === '/projects' || p === '/projects/exsa' || p === '/projects/table-23' || p === '/projects/homebase' || p === '/about-builder01' || p === '/backrooms') {
       document.documentElement.dataset.scene = p;
       // Direct landings replay the arrival ceremony once the engine is
       // warm; hold the page back so its text never shows before the dots
@@ -1014,6 +1051,911 @@
     <a class="pback" href="/" data-scene-link>← back to the field</a>
   </div>
 </div>
+
+<div class="scene" id="backrooms-scene">
+  <div class="pwrap">
+    <a class="pback ptop" href="/" data-scene-link>← back to the field</a>
+    <div class="sheet">
+    <div class="pkicker">jared // the agency floor</div>
+    <div class="pabove">Behind the field</div>
+    <h1>The Backrooms</h1>
+    <div class="pstatus"><span class="pdot"></span>six agents on shift</div>
+
+    <div class="section">
+      <h2>What this is</h2>
+      <p>Every build on this site is directed by one person and worked by a small agency of AI agents, each one built to close a gap found by auditing over a thousand of the principal's own prompts. This is their floor. The numbers are real, exported from the agency's working records and reviewed before anything reaches this page.</p>
+    </div>
+
+    <div class="section">
+      <h2>The floor</h2>
+      <div class="exhibits">
+        <figure class="exhibit office">
+          <canvas id="office-canvas" width="1280" height="720"></canvas>
+        </figure>
+      </div>
+      <p class="office-caption" id="office-caption">the floor is live :: six agents on shift</p>
+      <p><a class="mail" id="replay-btn" href="#">replay a real founding day</a></p>
+    </div>
+
+    <div class="section">
+      <h2>The pipeline</h2>
+      <p>A build moves through the brigade in one line: the Spec Gate refuses work without written acceptance criteria, the Design Director turns adjectives into exact values, the Watchdog sweeps every change unprompted, and the Deploy Gate unbundles every greenlight before anything ships. The Ledger writes it all down, and the Mentor closes each session with the lesson.</p>
+    </div>
+
+    <div class="section">
+      <h2>The roster</h2>
+      <ul class="roster" id="roster"></ul>
+    </div>
+
+    <div class="section">
+      <h2>The record</h2>
+      <p id="record-line"></p>
+    </div>
+    </div>
+
+    <a class="pback" href="/" data-scene-link>← back to the field</a>
+  </div>
+</div>
+
+<script type="application/json" id="agency-data">
+{
+  "generated": "2026-07-17",
+  "stats": { "decisions": 6, "debriefs": 1, "lessons": 0, "agents": 6, "specsGated": 1 },
+  "ledgerTitles": [
+    "Ledger: 17 July 2026 - from builders to agency",
+    "Ledger: 17 July 2026 - the agents get their names",
+    "Ledger: 17 July 2026 - EE joins the Build division",
+    "Ledger: 17 July 2026 - EE gets a toolbox (third-party adoption)",
+    "Ledger: 17 July 2026 - audit of pre-policy installed skills",
+    "Ledger: 17 July 2026 - founding decisions"
+  ],
+  "agents": [
+    { "id": "31hks", "name": "31HKS", "role": "Spec Gate", "station": "doorway", "story": "Named after a speakeasy the principal once built before he was sure. Nothing enters without the password: a written spec.", "status": "guarding the door" },
+    { "id": "ee", "name": "EE", "role": "Design Director", "station": "drafting-table", "story": "Named for two kids who deserve the best experience and design. Adjectives become exact values here.", "status": "arranging the drafting table" },
+    { "id": "pepperpotts", "name": "PepperPotts", "role": "Standing Watchdog", "station": "patrol", "story": "Named after a very real dog. Patrols after every change; only barks at findings she can point to.", "status": "on patrol" },
+    { "id": "sarah-t", "name": "Sarah.T", "role": "Deploy Gate", "station": "checkpoint", "story": "Named for the commanding officer of the principal's life. Nothing ships without her checklist.", "status": "holding the checkpoint" },
+    { "id": "tcd", "name": "TCD", "role": "Decision Ledger", "station": "writing-desk", "story": "Named after an old coffee venture, now literally the daily record. Every call gets written down.", "status": "writing the daily record" },
+    { "id": "singsangsung", "name": "SingSangSung", "role": "Fundamentals Mentor", "station": "whiteboard", "story": "Named for the person who started the principal's AI journey. Teaches why the build is shaped the way it is.", "status": "at the whiteboard" }
+  ],
+  "replay": {
+    "title": "A real founding day, replayed",
+    "date": "2026-07-17",
+    "speedNote": "one working day in about thirty seconds",
+    "events": [
+      { "t": 0, "agent": "tcd", "caption": "Founding decisions logged: the agency is born" },
+      { "t": 3, "agent": "31hks", "caption": "Spec Gate built first: no spec, no build" },
+      { "t": 6, "agent": "pepperpotts", "caption": "Watchdog joins: QA becomes a standing patrol" },
+      { "t": 9, "agent": "sarah-t", "caption": "Deploy Gate online: greenlights get unbundled" },
+      { "t": 12, "agent": "singsangsung", "caption": "Mentor joins: every build ends with a lesson" },
+      { "t": 15, "agent": "ee", "caption": "Design Director joins: adjectives become exact values" },
+      { "t": 18, "agent": "ee", "caption": "A third-party design library is reviewed, vendored, and adopted" },
+      { "t": 22, "agent": "pepperpotts", "caption": "Retroactive audit: 12 skills swept, 3 flagged, house rules set" },
+      { "t": 26, "agent": "tcd", "caption": "Every decision of the day is in the ledger" },
+      { "t": 29, "agent": "31hks", "caption": "A new build request arrives... the door is shut until the spec is written" }
+    ]
+  }
+}
+</script>
+<script>
+  // Pours #agency-data into the Backrooms roster and record line, the same
+  // convention as the project render script: synchronous, before any CDN
+  // load, so the scene's real content exists before anything can fail.
+  // The exporter in the continuity vault regenerates the JSON above; this
+  // script never needs to change with the data.
+  window.AGENCY = JSON.parse(document.getElementById('agency-data').textContent);
+  (function () {
+    const roster = document.getElementById('roster');
+    for (const a of window.AGENCY.agents) {
+      const li = document.createElement('li');
+      const b = document.createElement('b');
+      b.textContent = a.name + ' :: ' + a.role.toLowerCase();
+      const p = document.createElement('span');
+      p.textContent = ' ' + a.story;
+      li.appendChild(b);
+      li.appendChild(p);
+      roster.appendChild(li);
+    }
+    const s = window.AGENCY.stats;
+    document.getElementById('record-line').textContent =
+      'As of ' + window.AGENCY.generated + ': ' + s.decisions + ' decisions logged, ' +
+      s.debriefs + ' session debrief on file, ' + s.specsGated + ' build gated through a written spec, ' +
+      s.agents + ' agents on shift. Exported from the agency ledger; work engagements appear as counts only.';
+  })();
+</script>
+
+<script>
+/*
+ * backrooms-office.js
+ *
+ * Self-contained canvas 2D "pixel office" engine. Plain script, no modules,
+ * no imports, no external assets, no fetch. Everything a station needs is
+ * drawn in code onto a small logical grid, then scaled up crisp (nearest
+ * neighbour) to fill whatever canvas element the host page hands us.
+ *
+ * Usage:
+ *   var api = initBackroomsOffice(canvasEl, data, opts);
+ *   api.start();
+ *
+ * See the bottom of this file for the returned API shape.
+ */
+
+function initBackroomsOffice(canvas, data, opts) {
+    'use strict';
+
+    // ---------------------------------------------------------------
+    // Constants and palette. Kept tight on purpose: dark background,
+    // green family for furniture/characters, white chips for text,
+    // amber used sparingly for the desk lamp glow only.
+    // ---------------------------------------------------------------
+    var LOGICAL_W = 320;
+    var LOGICAL_H = 180;
+
+    var COLORS = {
+        bg: '#04080a',
+        floor: '#0a1410',
+        floorGrid: 'rgba(30, 69, 52, 0.28)',
+        wall: '#0d1a14',
+        wallEdge: '#123322',
+        outline: '#1e4534',
+        accentBright: '#7dffb0',
+        accentMid: '#3fae72',
+        tagBg: 'rgba(4, 8, 10, 0.82)',
+        tagText: '#eef5ef',
+        amber: '#d9a441',
+        voidDark: '#020404'
+    };
+
+    // Left-to-right station layout. Furniture sits near the back wall,
+    // the "stand" point is where the working agent plants their feet,
+    // a few logical pixels in front of the furniture (3/4 top-down read).
+    var STATIONS = {
+        doorway: { standX: 26, standY: 92, workType: 'watch', accent: 'cap' },
+        checkpoint: { standX: 75, standY: 94, workType: 'stamp', accent: 'scarf' },
+        'drafting-table': { standX: 137, standY: 94, workType: 'draw', accent: 'clipboard' },
+        'writing-desk': { standX: 199, standY: 94, workType: 'write', accent: 'glasses' },
+        whiteboard: { standX: 267, standY: 92, workType: 'wipe', accent: 'marker' }
+    };
+    var STATION_ORDER = ['doorway', 'checkpoint', 'drafting-table', 'writing-desk', 'whiteboard'];
+
+    var PLANTS = [{ x: 8, y: 168 }, { x: 312, y: 168 }];
+    var CRATES = [{ x: 100, y: 168 }, { x: 230, y: 168 }];
+    // Waypoints the patrol dog loops through forever.
+    var PATROL_WAYPOINTS = [{ x: 46, y: 140 }, { x: 120, y: 158 }, { x: 210, y: 145 }, { x: 280, y: 158 }];
+
+    // Small per-frame offsets for the "tool" pixel each working animation
+    // moves (stamp thumping down, pencil sliding, pen bobbing, wiper arm
+    // sweeping). Frame counts of 2 or 3 per the spec.
+    var WORK_ANIM = {
+        watch: [{ dx: 0, dy: 0 }, { dx: 0, dy: -1 }],
+        stamp: [{ dx: 5, dy: -7 }, { dx: 5, dy: -4 }],
+        draw: [{ dx: 4, dy: -8 }, { dx: 6, dy: -8 }],
+        write: [{ dx: 4, dy: -7 }, { dx: 4, dy: -6 }],
+        wipe: [{ dx: 2, dy: -9 }, { dx: 5, dy: -9 }, { dx: 8, dy: -9 }]
+    };
+
+    var reducedMotion = !!(opts && opts.reducedMotion);
+
+    // ---------------------------------------------------------------
+    // Canvas / buffer setup. We paint the scene into a fixed 320x180
+    // offscreen buffer, then blit that buffer scaled by an integer
+    // factor onto the real canvas. That is the simplest way to get
+    // guaranteed crisp pixels regardless of devicePixelRatio.
+    // ---------------------------------------------------------------
+    var ctx = canvas.getContext('2d');
+    var buffer = document.createElement('canvas');
+    buffer.width = LOGICAL_W;
+    buffer.height = LOGICAL_H;
+    var bctx = buffer.getContext('2d');
+    bctx.imageSmoothingEnabled = false;
+
+    var dpr = 1;
+    var scale = 1;
+    var offsetX = 0;
+    var offsetY = 0;
+    var cssW = LOGICAL_W;
+    var cssH = LOGICAL_H;
+
+    // ---------------------------------------------------------------
+    // Loop / lifecycle state. Only requestAnimationFrame is ever used
+    // for timing, so stop() cancelling the one rafId is enough to
+    // leave zero timers behind.
+    // ---------------------------------------------------------------
+    var running = false;
+    var paused = false;
+    var rafId = null;
+    var lastTime = null;
+    var replayState = null;
+
+    // ---------------------------------------------------------------
+    // Small helpers
+    // ---------------------------------------------------------------
+    function rand(min, max) { return min + Math.random() * (max - min); }
+
+    function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+    function fillRect(x, y, w, h, color) {
+        bctx.fillStyle = color;
+        bctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    }
+
+    function strokeRect(x, y, w, h, color) {
+        bctx.strokeStyle = color;
+        bctx.lineWidth = 1;
+        bctx.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.round(w) - 1, Math.round(h) - 1);
+    }
+
+    // ---------------------------------------------------------------
+    // Agent construction. Each entry in data.agents becomes internal
+    // state carrying position, animation and behaviour timers. The
+    // "pepperpotts" id (or a station of "patrol") is drawn as the dog,
+    // everyone else is a small humanoid tied to a desk/station.
+    // ---------------------------------------------------------------
+    function buildAgents(list) {
+        var out = [];
+        for (var i = 0; i < list.length; i++) {
+            var src = list[i] || {};
+            var isDog = (src.id === 'pepperpotts') || (src.station === 'patrol');
+            var station = STATIONS[src.station];
+            var agent = {
+                id: src.id,
+                name: src.name || src.id || 'agent',
+                role: src.role || '',
+                station: src.station || (isDog ? 'patrol' : STATION_ORDER[i % STATION_ORDER.length]),
+                status: src.status || '',
+                isDog: isDog,
+                facing: 1,
+                state: 'working',
+                animTimer: 0,
+                frame: 0,
+                pauseTimer: 0,
+                wanderCooldown: rand(6000, 14000),
+                walkTarget: null,
+                returning: false,
+                glowUntil: 0,
+                waypointIndex: 0,
+                tailFrame: 0
+            };
+            if (isDog) {
+                agent.homeX = PATROL_WAYPOINTS[0].x;
+                agent.homeY = PATROL_WAYPOINTS[0].y;
+                agent.state = 'walking';
+                agent.walkTarget = PATROL_WAYPOINTS[1] || PATROL_WAYPOINTS[0];
+                agent.waypointIndex = 1 % PATROL_WAYPOINTS.length;
+            } else {
+                var st = station || STATIONS[STATION_ORDER[i % STATION_ORDER.length]];
+                agent.homeX = st.standX;
+                agent.homeY = st.standY;
+                agent.workType = st.workType;
+                agent.accent = st.accent;
+            }
+            agent.x = agent.homeX;
+            agent.y = agent.homeY;
+            out.push(agent);
+        }
+        return out;
+    }
+
+    var agents = buildAgents((data && data.agents) ? data.agents : []);
+
+    function findAgent(idOrName) {
+        for (var i = 0; i < agents.length; i++) {
+            if (agents[i].id === idOrName || agents[i].name === idOrName) return agents[i];
+        }
+        return null;
+    }
+
+    function clearAllGlow() {
+        for (var i = 0; i < agents.length; i++) agents[i].glowUntil = 0;
+    }
+
+    function settleAgents() {
+        // Used for the reduced-motion static frame: everyone parked at
+        // their station or first waypoint, idle pose, no motion.
+        for (var i = 0; i < agents.length; i++) {
+            var a = agents[i];
+            a.x = a.homeX;
+            a.y = a.homeY;
+            a.state = a.isDog ? 'sniff' : 'working';
+            a.frame = 0;
+            a.animTimer = 0;
+            a.glowUntil = 0;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Wander behaviour for the five desk agents. Every 6-14s (spec
+    // range) an idle agent picks a nearby station or a plant to walk
+    // to, pauses briefly, then returns home.
+    // ---------------------------------------------------------------
+    function pickWanderTarget(agent) {
+        var candidates = [];
+        var idx = STATION_ORDER.indexOf(agent.station);
+        if (idx > 0) {
+            var prev = STATIONS[STATION_ORDER[idx - 1]];
+            candidates.push({ x: prev.standX, y: prev.standY });
+        }
+        if (idx >= 0 && idx < STATION_ORDER.length - 1) {
+            var next = STATIONS[STATION_ORDER[idx + 1]];
+            candidates.push({ x: next.standX, y: next.standY });
+        }
+        for (var i = 0; i < PLANTS.length; i++) {
+            candidates.push({ x: PLANTS[i].x + 10, y: PLANTS[i].y - 6 });
+        }
+        if (candidates.length === 0) return { x: agent.homeX, y: agent.homeY };
+        return candidates[Math.floor(rand(0, candidates.length))];
+    }
+
+    function moveTowards(agent, target, dt, speed) {
+        var dx = target.x - agent.x;
+        var dy = target.y - agent.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var step = (speed * dt) / 1000;
+        if (dist <= step || dist < 0.5) {
+            agent.x = target.x;
+            agent.y = target.y;
+            return true;
+        }
+        agent.x += (dx / dist) * step;
+        agent.y += (dy / dist) * step;
+        if (Math.abs(dx) > 0.1) agent.facing = dx < 0 ? -1 : 1;
+        return false;
+    }
+
+    function workFrameCount(workType) {
+        var frames = WORK_ANIM[workType];
+        return frames ? frames.length : 2;
+    }
+
+    function updateHuman(agent, dt) {
+        var glowActive = replayState && replayState.active && agent.glowUntil > replayState.elapsed;
+
+        if (glowActive) {
+            // Replay burst: snap to station and cycle the working
+            // animation fast so the highlighted agent reads clearly.
+            agent.state = 'working';
+            agent.x = agent.homeX;
+            agent.y = agent.homeY;
+            agent.animTimer += dt;
+            if (agent.animTimer > 130) {
+                agent.animTimer = 0;
+                agent.frame = (agent.frame + 1) % workFrameCount(agent.workType);
+            }
+            return;
+        }
+
+        if (reducedMotion) return; // frozen settled frame, nothing to advance
+
+        if (agent.state === 'walking') {
+            var reached = moveTowards(agent, agent.walkTarget, dt, 22);
+            agent.animTimer += dt;
+            if (agent.animTimer > 180) {
+                agent.animTimer = 0;
+                agent.frame = (agent.frame + 1) % 2;
+            }
+            if (reached) {
+                if (agent.returning) {
+                    agent.state = 'working';
+                    agent.returning = false;
+                    agent.frame = 0;
+                    agent.wanderCooldown = rand(6000, 14000);
+                } else {
+                    agent.state = 'pausedAtTarget';
+                    agent.pauseTimer = rand(700, 1500);
+                }
+            }
+            return;
+        }
+
+        if (agent.state === 'pausedAtTarget') {
+            agent.pauseTimer -= dt;
+            agent.animTimer += dt;
+            if (agent.animTimer > 450) {
+                agent.animTimer = 0;
+                agent.frame = (agent.frame + 1) % 2;
+            }
+            if (agent.pauseTimer <= 0) {
+                agent.state = 'walking';
+                agent.walkTarget = { x: agent.homeX, y: agent.homeY };
+                agent.returning = true;
+            }
+            return;
+        }
+
+        // Default: working at the station.
+        agent.animTimer += dt;
+        var interval = agent.workType === 'watch' ? 500 : 260;
+        if (agent.animTimer > interval) {
+            agent.animTimer = 0;
+            agent.frame = (agent.frame + 1) % workFrameCount(agent.workType);
+        }
+        agent.wanderCooldown -= dt;
+        if (agent.wanderCooldown <= 0) {
+            agent.walkTarget = pickWanderTarget(agent);
+            agent.state = 'walking';
+            agent.returning = false;
+            agent.frame = 0;
+        }
+    }
+
+    function updateDog(agent, dt) {
+        var glowActive = replayState && replayState.active && agent.glowUntil > replayState.elapsed;
+
+        if (glowActive) {
+            agent.animTimer += dt;
+            if (agent.animTimer > 150) {
+                agent.animTimer = 0;
+                agent.tailFrame = (agent.tailFrame + 1) % 2;
+            }
+            return;
+        }
+
+        if (reducedMotion) return;
+
+        agent.animTimer += dt;
+        if (agent.animTimer > 200) {
+            agent.animTimer = 0;
+            agent.tailFrame = (agent.tailFrame + 1) % 2;
+        }
+
+        if (agent.state === 'sniff') {
+            agent.pauseTimer -= dt;
+            if (agent.pauseTimer <= 0) agent.state = 'walking';
+            return;
+        }
+
+        // Continuous patrol between waypoints, never stops for long.
+        var target = PATROL_WAYPOINTS[agent.waypointIndex];
+        var reached = moveTowards(agent, target, dt, 16);
+        if (reached) {
+            agent.state = 'sniff';
+            agent.pauseTimer = rand(900, 1800);
+            agent.waypointIndex = (agent.waypointIndex + 1) % PATROL_WAYPOINTS.length;
+        }
+    }
+
+    function updateAgents(dt) {
+        for (var i = 0; i < agents.length; i++) {
+            var a = agents[i];
+            if (a.isDog) updateDog(a, dt);
+            else updateHuman(a, dt);
+        }
+    }
+
+    function updateReplay(dt) {
+        replayState.elapsed += dt;
+        for (var i = 0; i < replayState.events.length; i++) {
+            var ev = replayState.events[i];
+            if (!ev.fired && replayState.elapsed >= ev.scaledT) {
+                ev.fired = true;
+                var agent = findAgent(ev.orig.agent);
+                if (agent) {
+                    agent.glowUntil = replayState.elapsed + 1400;
+                    agent.frame = 0;
+                    agent.animTimer = 0;
+                }
+                if (typeof replayState.onEvent === 'function') replayState.onEvent(ev.orig);
+            }
+        }
+        if (!replayState.doneFired && replayState.elapsed >= replayState.totalDuration) {
+            replayState.doneFired = true;
+            replayState.active = false;
+            var onDone = replayState.onDone;
+            clearAllGlow();
+            if (typeof onDone === 'function') onDone();
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Drawing: room shell (walls, floor, grid), furniture per station,
+    // plants/crates, then agents sorted by y for a simple depth read.
+    // ---------------------------------------------------------------
+    function drawFloor() {
+        fillRect(0, 24, LOGICAL_W, LOGICAL_H - 24, COLORS.floor);
+        bctx.strokeStyle = COLORS.floorGrid;
+        bctx.lineWidth = 1;
+        var gx, gy;
+        for (gx = 0; gx <= LOGICAL_W; gx += 16) {
+            bctx.beginPath();
+            bctx.moveTo(gx + 0.5, 24);
+            bctx.lineTo(gx + 0.5, LOGICAL_H);
+            bctx.stroke();
+        }
+        for (gy = 24; gy <= LOGICAL_H; gy += 16) {
+            bctx.beginPath();
+            bctx.moveTo(0, gy + 0.5);
+            bctx.lineTo(LOGICAL_W, gy + 0.5);
+            bctx.stroke();
+        }
+    }
+
+    function drawWalls() {
+        fillRect(0, 0, LOGICAL_W, 24, COLORS.wall);
+        fillRect(0, 22, LOGICAL_W, 2, COLORS.wallEdge);
+    }
+
+    function drawDoorway() {
+        fillRect(14, 0, 24, 24, COLORS.wall);
+        fillRect(16, 0, 20, 22, COLORS.voidDark);
+        strokeRect(14, 0, 24, 24, COLORS.outline);
+    }
+
+    function drawCheckpoint() {
+        fillRect(58, 40, 34, 14, '#0f2018');
+        strokeRect(58, 40, 34, 14, COLORS.outline);
+        // barrier post
+        fillRect(94, 30, 3, 26, '#0f2018');
+        strokeRect(94, 30, 3, 26, COLORS.outline);
+        // stamp block accent
+        fillRect(68, 34, 5, 5, COLORS.accentMid);
+        strokeRect(68, 34, 5, 5, COLORS.outline);
+    }
+
+    function drawDraftingTable() {
+        fillRect(118, 36, 38, 18, '#0f2018');
+        strokeRect(118, 36, 38, 18, COLORS.outline);
+        // pinned sheets, angled table top look
+        fillRect(124, 30, 10, 8, '#0e241a');
+        strokeRect(124, 30, 10, 8, COLORS.accentMid);
+        fillRect(138, 30, 10, 8, '#0e241a');
+        strokeRect(138, 30, 10, 8, COLORS.accentMid);
+    }
+
+    function drawWritingDesk() {
+        fillRect(182, 38, 34, 16, '#0f2018');
+        strokeRect(182, 38, 34, 16, COLORS.outline);
+        // open book
+        fillRect(188, 42, 12, 6, '#123322');
+        strokeRect(188, 42, 12, 6, COLORS.accentMid);
+        // lamp: small warm glow, the only amber in the whole scene
+        var glowPulse = 0.55 + Math.sin(nowMs / 260) * 0.15;
+        bctx.save();
+        bctx.globalAlpha = clamp(glowPulse, 0.3, 0.8);
+        bctx.fillStyle = COLORS.amber;
+        bctx.beginPath();
+        bctx.arc(208, 40, 6, 0, Math.PI * 2);
+        bctx.fill();
+        bctx.restore();
+        fillRect(206, 34, 4, 8, COLORS.amber);
+        strokeRect(206, 34, 4, 8, COLORS.outline);
+    }
+
+    function drawWhiteboard() {
+        fillRect(246, 4, 42, 20, '#0c1a13');
+        strokeRect(246, 4, 42, 20, COLORS.outline);
+        fillRect(248, 6, 38, 16, '#0d221a');
+        // scribbles
+        bctx.strokeStyle = COLORS.accentMid;
+        bctx.lineWidth = 1;
+        bctx.beginPath();
+        bctx.moveTo(252, 10); bctx.lineTo(262, 8); bctx.lineTo(270, 12);
+        bctx.moveTo(252, 16); bctx.lineTo(258, 15); bctx.lineTo(264, 17); bctx.lineTo(280, 14);
+        bctx.stroke();
+    }
+
+    function drawPlant(p) {
+        fillRect(p.x - 4, p.y - 2, 8, 4, '#0d1a14');
+        strokeRect(p.x - 4, p.y - 2, 8, 4, COLORS.outline);
+        fillRect(p.x - 3, p.y - 10, 6, 8, COLORS.accentMid);
+        fillRect(p.x - 5, p.y - 8, 4, 5, COLORS.accentMid);
+        fillRect(p.x + 1, p.y - 8, 4, 5, COLORS.accentMid);
+        fillRect(p.x - 1, p.y - 12, 3, 4, COLORS.accentBright);
+    }
+
+    function drawCrate(c) {
+        fillRect(c.x - 6, c.y - 10, 12, 10, '#0f2018');
+        strokeRect(c.x - 6, c.y - 10, 12, 10, COLORS.outline);
+        bctx.strokeStyle = COLORS.outline;
+        bctx.beginPath();
+        bctx.moveTo(c.x - 6, c.y - 10); bctx.lineTo(c.x + 6, c.y);
+        bctx.moveTo(c.x + 6, c.y - 10); bctx.lineTo(c.x - 6, c.y);
+        bctx.stroke();
+    }
+
+    function drawFurniture() {
+        drawDoorway();
+        drawCheckpoint();
+        drawDraftingTable();
+        drawWritingDesk();
+        drawWhiteboard();
+        for (var i = 0; i < PLANTS.length; i++) drawPlant(PLANTS[i]);
+        for (var j = 0; j < CRATES.length; j++) drawCrate(CRATES[j]);
+    }
+
+    // Draws one small pixel accent detail on a humanoid, distinguishing
+    // the five desk agents from each other without leaving the palette.
+    function drawAccent(agent, x, y) {
+        bctx.fillStyle = COLORS.accentBright;
+        switch (agent.accent) {
+            case 'cap':
+                fillRect(x - 2, y - 15, 5, 1, COLORS.accentBright);
+                break;
+            case 'glasses':
+                fillRect(x - 2, y - 12, 1, 1, COLORS.accentBright);
+                fillRect(x + 1, y - 12, 1, 1, COLORS.accentBright);
+                break;
+            case 'scarf':
+                fillRect(x - 3, y - 10, 6, 1, COLORS.accentBright);
+                break;
+            case 'clipboard':
+                fillRect(x + 3, y - 9, 3, 5, COLORS.accentBright);
+                break;
+            case 'marker':
+                fillRect(x + 3, y - 8, 2, 3, COLORS.accentBright);
+                break;
+        }
+    }
+
+    function drawHuman(agent) {
+        var x = agent.x;
+        var y = agent.y;
+        var glowActive = replayState && replayState.active && agent.glowUntil > replayState.elapsed;
+
+        bctx.save();
+        if (agent.facing < 0) {
+            bctx.translate(x, 0);
+            bctx.scale(-1, 1);
+            bctx.translate(-x, 0);
+        }
+
+        if (glowActive) {
+            var pulse = 0.5 + Math.sin(nowMs / 120) * 0.35;
+            bctx.save();
+            bctx.globalAlpha = clamp(pulse, 0.35, 0.95);
+            bctx.strokeStyle = COLORS.accentBright;
+            bctx.lineWidth = 1;
+            bctx.strokeRect(x - 6.5, y - 16.5, 13, 17);
+            bctx.restore();
+        }
+
+        var legOffset = (agent.state === 'walking') ? (agent.frame === 0 ? -1 : 1) : 0;
+        var bob = (agent.frame === 1 && agent.state !== 'walking') ? -1 : 0;
+
+        // legs
+        fillRect(x - 2 - legOffset, y - 4, 2, 4, COLORS.outline);
+        fillRect(x + legOffset, y - 4, 2, 4, COLORS.outline);
+        // body
+        fillRect(x - 3, y - 10 + bob, 6, 6, COLORS.accentMid);
+        strokeRect(x - 3, y - 10 + bob, 6, 6, COLORS.outline);
+        // head
+        fillRect(x - 2, y - 14 + bob, 4, 4, COLORS.accentMid);
+        strokeRect(x - 2, y - 14 + bob, 4, 4, COLORS.outline);
+
+        drawAccent(agent, x, y + bob);
+
+        // active working tool pixel (stamp, pencil, pen, wiper arm...)
+        if (agent.state === 'working' || glowActive) {
+            var frames = WORK_ANIM[agent.workType] || WORK_ANIM.watch;
+            var f = frames[agent.frame % frames.length];
+            fillRect(x + f.dx, y + f.dy, 2, 2, COLORS.accentBright);
+        }
+
+        bctx.restore();
+    }
+
+    function drawDog(agent) {
+        var x = agent.x;
+        var y = agent.y;
+        var glowActive = replayState && replayState.active && agent.glowUntil > replayState.elapsed;
+
+        bctx.save();
+        if (agent.facing < 0) {
+            bctx.translate(x, 0);
+            bctx.scale(-1, 1);
+            bctx.translate(-x, 0);
+        }
+
+        if (glowActive) {
+            var pulse = 0.5 + Math.sin(nowMs / 120) * 0.35;
+            bctx.save();
+            bctx.globalAlpha = clamp(pulse, 0.35, 0.95);
+            bctx.strokeStyle = COLORS.accentBright;
+            bctx.lineWidth = 1;
+            bctx.strokeRect(x - 7.5, y - 9.5, 15, 10);
+            bctx.restore();
+        }
+
+        // body
+        fillRect(x - 5, y - 6, 10, 5, COLORS.accentMid);
+        strokeRect(x - 5, y - 6, 10, 5, COLORS.outline);
+        // head
+        fillRect(x + 4, y - 8, 5, 5, COLORS.accentMid);
+        strokeRect(x + 4, y - 8, 5, 5, COLORS.outline);
+        // floppy ear
+        fillRect(x + 4, y - 8, 2, 3, COLORS.outline);
+        // legs
+        fillRect(x - 4, y - 1, 2, 3, COLORS.outline);
+        fillRect(x + 2, y - 1, 2, 3, COLORS.outline);
+        // tail wag: two positions
+        var tailY = agent.tailFrame === 0 ? y - 7 : y - 5;
+        fillRect(x - 7, tailY, 3, 2, COLORS.accentBright);
+        // eye
+        fillRect(x + 7, y - 6, 1, 1, COLORS.accentBright);
+
+        bctx.restore();
+    }
+
+    function drawNameTag(agent) {
+        var text = agent.name;
+        bctx.font = '8px monospace';
+        var textW = bctx.measureText(text).width;
+        var chipW = Math.ceil(textW) + 4;
+        var chipH = 8;
+        var cx = Math.round(agent.x - chipW / 2);
+        var cy = Math.round(agent.y - (agent.isDog ? 22 : 24));
+
+        bctx.fillStyle = COLORS.tagBg;
+        bctx.fillRect(cx, cy, chipW, chipH);
+        bctx.fillStyle = COLORS.tagText;
+        bctx.textBaseline = 'top';
+        bctx.fillText(text, cx + 2, cy);
+    }
+
+    var nowMs = 0; // accumulated animation clock, used for lamp/glow pulses
+
+    function renderScene() {
+        bctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
+        fillRect(0, 0, LOGICAL_W, LOGICAL_H, COLORS.bg);
+        drawWalls();
+        drawFloor();
+        drawFurniture();
+
+        var order = agents.slice().sort(function (a, b) { return a.y - b.y; });
+        for (var i = 0; i < order.length; i++) {
+            var a = order[i];
+            if (a.isDog) drawDog(a); else drawHuman(a);
+            drawNameTag(a);
+        }
+    }
+
+    function blit() {
+        ctx.save();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+        ctx.fillStyle = COLORS.bg;
+        ctx.fillRect(0, 0, cssW, cssH);
+        ctx.drawImage(buffer, 0, 0, LOGICAL_W, LOGICAL_H, offsetX, offsetY, LOGICAL_W * scale, LOGICAL_H * scale);
+        ctx.restore();
+    }
+
+    function render() {
+        renderScene();
+        blit();
+    }
+
+    // ---------------------------------------------------------------
+    // Loop plumbing
+    // ---------------------------------------------------------------
+    function tick(now) {
+        if (lastTime === null) lastTime = now;
+        var dt = now - lastTime;
+        lastTime = now;
+        // Stall forgiveness: if the tab was backgrounded or hitched,
+        // do not let a huge dt cause agents to teleport.
+        if (dt > 250) dt = 16;
+        nowMs += dt;
+
+        if (!paused) {
+            if (replayState && replayState.active) updateReplay(dt);
+            updateAgents(dt);
+        }
+        render();
+
+        if (running || (replayState && replayState.active)) {
+            rafId = requestAnimationFrame(tick);
+        } else {
+            rafId = null;
+            lastTime = null;
+        }
+    }
+
+    function scheduleLoop() {
+        if (rafId === null) {
+            lastTime = null;
+            rafId = requestAnimationFrame(tick);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Public API
+    // ---------------------------------------------------------------
+    function start() {
+        if (reducedMotion) {
+            // Spec: one static settled frame, no loop at all.
+            running = false;
+            settleAgents();
+            render();
+            return;
+        }
+        running = true;
+        scheduleLoop();
+    }
+
+    function stop() {
+        running = false;
+        if (replayState) {
+            replayState.active = false;
+            replayState = null;
+        }
+        clearAllGlow();
+        if (rafId !== null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
+        lastTime = null;
+        paused = false;
+    }
+
+    function resize() {
+        dpr = window.devicePixelRatio || 1;
+        cssW = canvas.clientWidth || canvas.width || LOGICAL_W;
+        cssH = canvas.clientHeight || canvas.height || LOGICAL_H;
+        var pixelW = Math.max(1, Math.round(cssW * dpr));
+        var pixelH = Math.max(1, Math.round(cssH * dpr));
+        canvas.width = pixelW;
+        canvas.height = pixelH;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+        scale = Math.max(1, Math.floor(Math.min(cssW / LOGICAL_W, cssH / LOGICAL_H)));
+        offsetX = Math.floor((cssW - LOGICAL_W * scale) / 2);
+        offsetY = Math.floor((cssH - LOGICAL_H * scale) / 2);
+        render();
+    }
+
+    function setPaused(p) {
+        paused = !!p;
+        if (!paused && (running || (replayState && replayState.active))) {
+            scheduleLoop();
+        }
+    }
+
+    function playReplay(replay, onEvent, onDone) {
+        // A second call while one is already running restarts cleanly:
+        // drop any glow left over from the previous run first.
+        clearAllGlow();
+
+        var srcEvents = (replay && replay.events) ? replay.events : [];
+        var lastT = 0;
+        var i;
+        for (i = 0; i < srcEvents.length; i++) {
+            if (srcEvents[i].t > lastT) lastT = srcEvents[i].t;
+        }
+        // Compress so total runtime is (last t + 3) seconds, capped at 30s.
+        var rawDurationSec = lastT + 3;
+        var targetDurationSec = Math.min(rawDurationSec, 30);
+        var factor = targetDurationSec / rawDurationSec;
+
+        var scaled = srcEvents.slice().sort(function (a, b) { return a.t - b.t; }).map(function (e) {
+            return { orig: e, scaledT: e.t * factor * 1000, fired: false };
+        });
+
+        replayState = {
+            active: true,
+            elapsed: 0,
+            events: scaled,
+            totalDuration: targetDurationSec * 1000,
+            onEvent: onEvent,
+            onDone: onDone,
+            doneFired: false
+        };
+
+        scheduleLoop();
+    }
+
+    // Initial paint so the canvas is never blank before start() is called.
+    resize();
+    settleAgents();
+    render();
+
+    return {
+        start: start,
+        stop: stop,
+        resize: resize,
+        playReplay: playReplay,
+        setPaused: setPaused
+    };
+}
+
+</script>
 
 <script>
   // THE RENDER SCRIPT
@@ -1306,8 +2248,45 @@
     renderer.domElement.style.cursor = 'grab';
     const elapsed = performance.now() - interaction.downTime;
     if (!didPinch && elapsed < 280 && interaction.dragTotal < 12) {
+      // A tap on the resident, leaned in close enough that he is showing
+      // himself, opens the door behind the field instead of pulsing it.
+      if (residentHit(e)) { enterBackrooms(); return; }
       interaction.pulseAmount = 1.0;
     }
+  }
+
+  // The resident is a sprite at the sphere's heart; hit-test him in screen
+  // space. Only counts once the lean-in has actually revealed him, so the
+  // door cannot be stumbled through from a polite distance.
+  function residentHit(e) {
+    if (scenePath || warp.active || fx.active) return false;
+    const closeness = Math.max(0, Math.min(1, (3.0 - interaction.cameraDistance) / (3.0 - MIN_ZOOM)));
+    if (closeness < 0.55) return false;
+    const centre = sphereScreenPos();
+    // His world size tracks the core's glow (markScale in the animate
+    // loop); half of a generous 0.3 world units, projected to pixels.
+    const screenR = (0.16 / (Math.tan(camera.fov * Math.PI / 360) * interaction.cameraDistance)) * (window.innerHeight / 2);
+    return Math.hypot(e.clientX - centre.x, e.clientY - centre.y) <= Math.max(28, screenR);
+  }
+
+  // Through the door: the lean-in lets go first, the field settling back to
+  // arm's length exactly as it looked before the approach, then the same
+  // leftward path as builder01 carries the viewer in, except the header
+  // forms in white. One continuous movement, no dead beat between the two.
+  function enterBackrooms() {
+    if (scenePath || warp.active || fx.active) return;
+    if (reducedMotion) { showScene('/backrooms', true); return; }
+    userZoomed = true;
+    interaction.targetDistance = fitDistance();
+    const t0 = performance.now();
+    (function waitSettle() {
+      // Something else claimed the field mid-collapse; stand down quietly.
+      if (scenePath || warp.active || fx.active) return;
+      const settled = Math.abs(interaction.cameraDistance - interaction.targetDistance) < 0.06;
+      if (!settled && performance.now() - t0 < 1600) { requestAnimationFrame(waitSettle); return; }
+      showScene('/backrooms', true);
+      arriveScene('/backrooms');
+    })();
   }
   renderer.domElement.addEventListener('pointerup', endPointer);
   renderer.domElement.addEventListener('pointercancel', endPointer);
@@ -1348,10 +2327,12 @@
   const SCENES = {
     '/projects': document.getElementById('projects-scene'),
     '/about-builder01': document.getElementById('about-scene'),
+    '/backrooms': document.getElementById('backrooms-scene'),
   };
   const SCENE_TITLES = {
     '/projects': 'J.A.R.E.D :: projects',
     '/about-builder01': 'J.A.R.E.D :: about Builder01',
+    '/backrooms': 'J.A.R.E.D :: The Backrooms',
   };
   // The project routes come from the data block instead of being listed by
   // hand here, so this map can never drift from what #project-data ships.
@@ -1410,6 +2391,10 @@
     else delete document.documentElement.dataset.scene;
     // A matter transition builds the index itself, so it skips the decrypt.
     if (path === '/projects' && !fx.internalNav) decryptIndex();
+    // The office floor only runs while its room is up; leaving the
+    // Backrooms by any route (link, back, skip) stops the little world.
+    if (path === '/backrooms') bootBackroomsOffice();
+    else stopBackroomsOffice();
     document.title = path ? SCENE_TITLES[path] : 'J.A.R.E.D';
     updateSEO(path);
     try {
@@ -1656,6 +2641,11 @@
   function fxTimer(fn, ms) { fx.timers.push(setTimeout(fn, ms)); }
   function fxWipe() { fxCtx.clearRect(0, 0, window.innerWidth, window.innerHeight); }
 
+  // The exhale's ink. Everything the sphere breathes out is pale green,
+  // except the Backrooms: the room behind the field forms in white, the
+  // one place the matter shows a different light.
+  let fxInk = '#d4f4e2';
+
   // Puts back everything a transition touched, whatever stage it died at.
   function fxAbort() {
     cancelAnimationFrame(fx.raf);
@@ -1667,6 +2657,7 @@
     document.querySelectorAll('.scene [style]').forEach((el) => { el.style.cssText = ''; });
     // The assemble beat styles the scene element itself; clear that too.
     document.querySelectorAll('.scene[style]').forEach((el) => { el.style.cssText = ''; });
+    fxInk = '#d4f4e2'; // a skipped Backrooms arrival must not leave white ink behind
     fx.active = false;
   }
 
@@ -1910,7 +2901,7 @@
       fxCtx.fillStyle = 'rgba(0, 0, 0, 0.12)';
       fxCtx.fillRect(0, 0, window.innerWidth, window.innerHeight);
       fxCtx.globalCompositeOperation = 'lighter';
-      fxCtx.fillStyle = '#d4f4e2';
+      fxCtx.fillStyle = fxInk;
       for (const d of dots) {
         const raw = (now - t0 - d.delay) / d.dur;
         if (raw < 0) continue;
@@ -2060,6 +3051,9 @@
   function arriveScene(path) {
     fx.active = true;
     fx.startT = performance.now();
+    // White pixels form The Backrooms header; everywhere else keeps the
+    // field's own pale green.
+    fxInk = path === '/backrooms' ? '#ffffff' : '#d4f4e2';
     const sceneEl = SCENES[path];
     const h1 = sceneEl.querySelector('h1');
     if (h1.dataset.text) h1.textContent = h1.dataset.text;
@@ -2075,6 +3069,63 @@
       if (!fx.active) return;
       playExhale(h1, () => { fx.active = false; }, exhibitDots);
     });
+  }
+
+  // ----- the backrooms office lifecycle -----
+  // The engine (initBackroomsOffice, defined in its own script above the
+  // CDN loads) is booted lazily on first entry and started or stopped as
+  // the router moves through. All of its state lives in the engine; this
+  // is just the light switch.
+  // var, bare, on purpose: showScene can run at script-evaluation time
+  // (the direct-landing block sits above this), and a let here would still
+  // be in its dead zone at that moment. The declarations carry NO
+  // initialiser because a direct landing on /backrooms boots the office
+  // before this line is reached; "= null" here would clobber the live
+  // handle. A bare var re-declaration is a no-op for an assigned name.
+  var officeHandle;
+  var officeReplayRunning;
+  function bootBackroomsOffice() {
+    const caption = document.getElementById('office-caption');
+    if (!officeHandle) {
+      if (typeof initBackroomsOffice !== 'function') return; // engine missing; the room stays a still image of nothing
+      const canvas = document.getElementById('office-canvas');
+      if (!canvas || !window.AGENCY) return;
+      officeHandle = initBackroomsOffice(canvas, window.AGENCY, { reducedMotion });
+      const replayBtn = document.getElementById('replay-btn');
+      if (replayBtn) {
+        if (reducedMotion) {
+          // No motion means no replay; the button quietly steps aside.
+          replayBtn.style.display = 'none';
+        } else {
+          replayBtn.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            if (officeReplayRunning || !officeHandle) return;
+            officeReplayRunning = true;
+            officeHandle.playReplay(
+              window.AGENCY.replay,
+              (event) => { if (caption) caption.textContent = event.caption; },
+              () => {
+                officeReplayRunning = false;
+                if (caption) caption.textContent = 'the floor is live :: six agents on shift';
+              }
+            );
+          });
+        }
+      }
+    }
+    // One frame so the scene's layout has settled before the canvas
+    // measures itself; a hidden-instant scene still lays out fine.
+    requestAnimationFrame(() => {
+      if (scenePath !== '/backrooms' || !officeHandle) return;
+      officeHandle.resize();
+      officeHandle.start();
+      if (caption && !officeReplayRunning) caption.textContent = 'the floor is live :: six agents on shift';
+    });
+  }
+  function stopBackroomsOffice() {
+    if (!officeHandle) return;
+    officeHandle.stop();
+    officeReplayRunning = false;
   }
 
   // A hop between any two scenes, in either direction: the old page
@@ -2433,7 +3484,9 @@
   // thread, never loose. Offsets ride position, not transform, because
   // the arrival reveal owns transform. Desktop only; below 1100px the
   // exhibits sit statically in the flow.
-  const exhibitEls = Array.from(document.querySelectorAll('.exhibit'));
+  // The office plate is excluded: its pixel art must sit on whole pixels,
+  // and the drift's fractional offsets would blur it.
+  const exhibitEls = Array.from(document.querySelectorAll('.exhibit:not(.office)'));
   const linkNodes = Array.from(document.querySelectorAll('.link-node'));
   function driftExhibits(now) {
     if (reducedMotion || window.innerWidth < 1100) {
@@ -2573,7 +3626,7 @@
     // The about page mirrors it: the field takes the left, the sheet the right.
     const wantShift = scenePath && scenePath !== '/projects' && window.innerWidth >= 1100;
     // Moving the camera right puts the sphere on the left of the screen.
-    const shiftDir = scenePath === '/about-builder01' ? 1 : -1;
+    const shiftDir = (scenePath === '/about-builder01' || scenePath === '/backrooms') ? 1 : -1;
     const halfW = Math.tan(camera.fov * Math.PI / 360) * interaction.cameraDistance * camera.aspect;
     sphereShift += ((wantShift ? shiftDir * halfW * 0.5 : 0) - sphereShift) * (1 - Math.exp(-2.2 * dt));
     camera.position.x = sphereShift;

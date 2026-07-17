@@ -103,6 +103,14 @@
       {
         "source": "/about-builder01/",
         "destination": "/index.html"
+      },
+      {
+        "source": "/backrooms",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/backrooms/",
+        "destination": "/index.html"
       }
     ]
   }
