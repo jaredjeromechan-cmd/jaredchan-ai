@@ -277,10 +277,21 @@
   }
   /* the desktop exhibits rail (sticky, 23vw, sphere-flank margins) is for
      dossier pages; the office plate stays a full-width figure in the flow.
-     The backrooms sheet also runs wider than the 34rem dossier column so
-     the office earns a 2x-plus pixel scale instead of sitting at 1x. */
+     The backrooms mirrors the about page's grid: the sheet takes the right
+     column so the leftward-drifted sphere keeps its air, and the column
+     runs 46rem so the office earns a proper pixel scale. */
   @media (min-width: 1100px) {
-    #backrooms-scene .pwrap { max-width: 52rem; }
+    #backrooms-scene .pwrap {
+      max-width: none;
+      margin: 0;
+      padding-left: 4vw;
+      padding-right: max(5vw, calc(50vw - 44rem));
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 44rem);
+      column-gap: 4rem;
+      align-items: start;
+    }
+    #backrooms-scene .pwrap > * { grid-column: 2; }
     #backrooms-scene .exhibits { position: static; top: auto; margin-top: 2.5rem; }
     #backrooms-scene .exhibits .exhibit { width: 100%; margin: 0; }
   }
@@ -651,10 +662,11 @@
       max-width: none;
       margin: 0;
       padding-left: 4vw;
-      /* the sheet's left edge (feather included) lands at screen centre */
-      padding-right: max(1.5rem, calc(50vw - 34rem));
+      /* the sheet's left edge (feather included) lands at screen centre;
+         the column runs 44rem now, same space treatment as the backrooms */
+      padding-right: max(5vw, calc(50vw - 44rem));
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 44rem);
       column-gap: 4rem;
       align-items: start;
     }
@@ -1066,7 +1078,7 @@
 
     <div class="section">
       <h2>What this is</h2>
-      <p>Every build on this site is directed by one person and worked by a small agency of AI agents, each one built to close a gap found by auditing over a thousand of the principal's own prompts. This is their floor. The numbers are real, exported from the agency's working records and reviewed before anything reaches this page.</p>
+      <p>Every build on this site is directed by one person and worked by a small agency of agents, each one built to close a gap found by auditing over a thousand of Builder01's work. This is their floor.</p>
     </div>
 
     <div class="section">
@@ -1078,11 +1090,6 @@
       </div>
       <p class="office-caption" id="office-caption">the floor is live :: six agents on shift</p>
       <p><a class="mail" id="replay-btn" href="#">replay a real founding day</a></p>
-    </div>
-
-    <div class="section">
-      <h2>The pipeline</h2>
-      <p>A build moves through the brigade in one line: the Spec Gate refuses work without written acceptance criteria, the Design Director turns adjectives into exact values, the Watchdog sweeps every change unprompted, and the Deploy Gate unbundles every greenlight before anything ships. The Ledger writes it all down, and the Mentor closes each session with the lesson.</p>
     </div>
 
     <div class="section">
@@ -1103,7 +1110,7 @@
 <script type="application/json" id="agency-data">
 {
   "generated": "2026-07-17",
-  "stats": { "decisions": 6, "debriefs": 1, "lessons": 0, "agents": 6, "specsGated": 1 },
+  "stats": { "decisions": 7, "debriefs": 1, "lessons": 0, "agents": 6, "specsGated": 1 },
   "ledgerTitles": [
     "Ledger: 17 July 2026 - from builders to agency",
     "Ledger: 17 July 2026 - the agents get their names",
@@ -1113,12 +1120,12 @@
     "Ledger: 17 July 2026 - founding decisions"
   ],
   "agents": [
-    { "id": "31hks", "name": "31HKS", "role": "Spec Gate", "station": "doorway", "story": "Named after a speakeasy the principal once built before he was sure. Nothing enters without the password: a written spec.", "status": "guarding the door" },
-    { "id": "ee", "name": "EE", "role": "Design Director", "station": "drafting-table", "story": "Named for two kids who deserve the best experience and design. Adjectives become exact values here.", "status": "arranging the drafting table" },
-    { "id": "pepperpotts", "name": "PepperPotts", "role": "Standing Watchdog", "station": "patrol", "story": "Named after a very real dog. Patrols after every change; only barks at findings she can point to.", "status": "on patrol" },
-    { "id": "sarah-t", "name": "Sarah.T", "role": "Deploy Gate", "station": "checkpoint", "story": "Named for the commanding officer of the principal's life. Nothing ships without her checklist.", "status": "holding the checkpoint" },
-    { "id": "tcd", "name": "TCD", "role": "Decision Ledger", "station": "writing-desk", "story": "Named after an old coffee venture, now literally the daily record. Every call gets written down.", "status": "writing the daily record" },
-    { "id": "singsangsung", "name": "SingSangSung", "role": "Fundamentals Mentor", "station": "whiteboard", "story": "Named for the person who started the principal's AI journey. Teaches why the build is shaped the way it is.", "status": "at the whiteboard" }
+    { "id": "31hks", "name": "31HKS", "role": "Spec Gate", "station": "doorway", "story": "Named after a speakeasy Builder01 once built before he was sure.", "status": "guarding the door" },
+    { "id": "ee", "name": "EE", "role": "Design Director", "station": "drafting-table", "story": "Named for his two kids who deserve the best experience and design.", "status": "arranging the drafting table" },
+    { "id": "pepperpotts", "name": "PEPPERPOTTS", "role": "Standing Watchdog", "station": "patrol", "story": "Named after a very real dog. Patrols every change.", "status": "on patrol" },
+    { "id": "steo", "name": "STEO", "role": "Deploy Gate", "station": "checkpoint", "story": "Named for the commanding officer of Builder01's life.", "status": "holding the checkpoint" },
+    { "id": "tcd", "name": "TCD", "role": "Decision Ledger", "station": "writing-desk", "story": "Named after an old coffee venture, now literally the daily record.", "status": "writing the daily record" },
+    { "id": "singsangsung", "name": "SINGSANG(SUNG)", "role": "Fundamentals Mentor", "station": "whiteboard", "story": "Named for the person who started the principal's AI journey.", "status": "at the whiteboard" }
   ],
   "replay": {
     "title": "A real founding day, replayed",
@@ -1128,7 +1135,7 @@
       { "t": 0, "agent": "tcd", "caption": "Founding decisions logged: the agency is born" },
       { "t": 3, "agent": "31hks", "caption": "Spec Gate built first: no spec, no build" },
       { "t": 6, "agent": "pepperpotts", "caption": "Watchdog joins: QA becomes a standing patrol" },
-      { "t": 9, "agent": "sarah-t", "caption": "Deploy Gate online: greenlights get unbundled" },
+      { "t": 9, "agent": "steo", "caption": "Deploy Gate online: greenlights get unbundled" },
       { "t": 12, "agent": "singsangsung", "caption": "Mentor joins: every build ends with a lesson" },
       { "t": 15, "agent": "ee", "caption": "Design Director joins: adjectives become exact values" },
       { "t": 18, "agent": "ee", "caption": "A third-party design library is reviewed, vendored, and adopted" },
@@ -1151,7 +1158,7 @@
     for (const a of window.AGENCY.agents) {
       const li = document.createElement('li');
       const b = document.createElement('b');
-      b.textContent = a.name + ' :: ' + a.role.toLowerCase();
+      b.textContent = a.name + ' :: ' + a.role;
       const p = document.createElement('span');
       p.textContent = ' ' + a.story;
       li.appendChild(b);
