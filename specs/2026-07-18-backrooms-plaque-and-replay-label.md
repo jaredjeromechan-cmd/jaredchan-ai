@@ -15,8 +15,9 @@ replay button must be named for what it will become: the reel since day zero.
 - [ ] THE RECORD section shows the plaque, aligned mono, exactly this shape:
       `day zero :: 17/07/2026 :: 1 division, 6 agents, 7 decisions`
       `today    :: <export date DD/MM/YYYY> :: <n> division(s), <n> agents, <n> decisions`
-      `the book only moves forward`
       Day-zero line frozen (baseline constants); today line computed at export time.
+      (Amended 18/07/2026 at the deploy gate: motto line "the book only moves
+      forward" removed at Jared's direction; the plaque is the two data lines.)
 - [ ] Provenance sentence retained below the plaque, smaller/dimmer: "Exported from the
       agency ledger; work engagements appear as counts only."
 - [ ] Exporter (agency repo scripts/export-agency-data.mjs) emits `dayZero` (frozen
