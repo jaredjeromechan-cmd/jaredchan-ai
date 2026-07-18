@@ -35,7 +35,7 @@ then white pixels form "The Backrooms" header. This touches the homepage minimal
       role + softened origin story (no real names, surnames, or identifying detail)
 - [ ] Replay: a "replay a real session" button plays a curated event log from
       `agency-data.json` at high speed - sprites act out events with short captions
-- [ ] Data pipeline: `export-agency-data` script in the continuity vault produces
+- [ ] Data pipeline: `export-agency-data` script in the agency repo produces
       `agency-data.json` on an allowlist schema; publish flow is manual: run script,
       review the JSON, copy into `portfolio/`, deploy
 - [ ] Privacy rules enforced by the exporter, not by trust: personal-project entries

@@ -1159,7 +1159,7 @@
   // Pours #agency-data into the Backrooms roster and record line, the same
   // convention as the project render script: synchronous, before any CDN
   // load, so the scene's real content exists before anything can fail.
-  // The exporter in the continuity vault regenerates the JSON above; this
+  // The exporter in the agency repo regenerates the JSON above; this
   // script never needs to change with the data.
   window.AGENCY = JSON.parse(document.getElementById('agency-data').textContent);
   (function () {
