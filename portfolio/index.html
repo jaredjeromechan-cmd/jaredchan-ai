@@ -284,6 +284,29 @@
     font-weight: 500;
     letter-spacing: 0.06em;
   }
+  /* The record plaque: two aligned mono data lines (white-space: pre keeps
+     the day zero / today columns in register), the house motto dimmer, and
+     the provenance note dimmest. Narrow widths shrink the type instead of
+     wrapping, because a wrapped ledger line stops reading as a ledger. */
+  #backrooms-scene .plaque-line {
+    margin: 0 0 0.3em;
+    white-space: pre;
+    letter-spacing: 0.05em;
+    color: #eef5ef;
+  }
+  #backrooms-scene .plaque-motto {
+    margin: 0.7em 0 1em;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+  #backrooms-scene .plaque-note {
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+  @media (max-width: 560px) {
+    #backrooms-scene .plaque-line { font-size: 0.62rem; }
+  }
   /* the desktop exhibits rail (sticky, 23vw, sphere-flank margins) is for
      dossier pages; the office plate stays a full-width figure in the flow.
      The backrooms mirrors the about page's grid: the sheet takes the right
@@ -1098,7 +1121,7 @@
         </figure>
       </div>
       <p class="office-caption" id="office-caption">the floor is live :: six agents on shift</p>
-      <p><a class="mail" id="replay-btn" href="#">replay a real founding day</a></p>
+      <p><a class="mail" id="replay-btn" href="#">replay :: since day zero :: 17/07/2026</a></p>
     </div>
 
     <div class="section">
@@ -1108,7 +1131,10 @@
 
     <div class="section">
       <h2>The record</h2>
-      <p id="record-line"></p>
+      <p class="plaque-line" id="plaque-day-zero"></p>
+      <p class="plaque-line" id="plaque-today"></p>
+      <p class="plaque-motto">the book only moves forward</p>
+      <p class="plaque-note">Exported from the agency ledger; work engagements appear as counts only.</p>
     </div>
     </div>
 
@@ -1118,39 +1144,146 @@
 
 <script type="application/json" id="agency-data">
 {
-  "generated": "2026-07-17",
-  "stats": { "decisions": 7, "debriefs": 1, "lessons": 0, "agents": 6, "specsGated": 1 },
+  "generated": "2026-07-18",
+  "dayZero": {
+    "date": "17/07/2026",
+    "divisions": 1,
+    "agents": 6,
+    "decisions": 7
+  },
+  "today": {
+    "date": "18/07/2026",
+    "divisions": 1,
+    "agents": 6,
+    "decisions": 13
+  },
+  "stats": {
+    "decisions": 13,
+    "debriefs": 2,
+    "lessons": 1,
+    "agents": 6,
+    "specsGated": 1
+  },
   "ledgerTitles": [
     "Ledger: 17 July 2026 - from builders to agency",
     "Ledger: 17 July 2026 - the agents get their names",
+    "Ledger: 17 July 2026 - The Backrooms goes live",
+    "Ledger: 17 July 2026 - The Backrooms v1 built",
     "Ledger: 17 July 2026 - EE joins the Build division",
     "Ledger: 17 July 2026 - EE gets a toolbox (third-party adoption)",
     "Ledger: 17 July 2026 - audit of pre-policy installed skills",
-    "Ledger: 17 July 2026 - founding decisions"
+    "Ledger: 17 July 2026 - founding decisions",
+    "Backrooms scales as a building: floors per division, directory-board lobby",
+    "Governance & Compliance chosen as the agency's first discovery division",
+    "No finished agents: every agent evolves continuously, founding six included",
+    "No job-search division; agency objectives clarified",
+    "Ledger: 18 July 2026 - repo renamed continuity-vault → agency"
   ],
   "agents": [
-    { "id": "31hks", "name": "31HKS", "role": "Spec Gate", "station": "doorway", "story": "Named after a speakeasy Builder01 once built before he was sure.", "status": "guarding the door" },
-    { "id": "ee", "name": "EE", "role": "Design Director", "station": "drafting-table", "story": "Named for his two kids who deserve the best experience and design.", "status": "arranging the drafting table" },
-    { "id": "pepperpotts", "name": "PEPPERPOTTS", "role": "Standing Watchdog", "station": "patrol", "story": "Named after a very real dog. Patrols every change.", "status": "on patrol" },
-    { "id": "steo", "name": "STEO", "role": "Deploy Gate", "station": "checkpoint", "story": "Named for the commanding officer of Builder01's life.", "status": "holding the checkpoint" },
-    { "id": "tcd", "name": "TCD", "role": "Decision Ledger", "station": "writing-desk", "story": "Named after an old coffee venture, now literally the daily record.", "status": "writing the daily record" },
-    { "id": "singsangsung", "name": "SINGSANG(SUNG)", "role": "Fundamentals Mentor", "station": "whiteboard", "story": "Named for the person who started Builder01's AI journey.", "status": "at the whiteboard" }
+    {
+      "id": "31hks",
+      "name": "31HKS",
+      "role": "Spec Gate",
+      "station": "doorway",
+      "story": "Named after a speakeasy Builder01 once built before he was sure.",
+      "status": "guarding the door"
+    },
+    {
+      "id": "ee",
+      "name": "EE",
+      "role": "Design Director",
+      "station": "drafting-table",
+      "story": "Named for his two kids who deserve the best experience and design.",
+      "status": "arranging the drafting table"
+    },
+    {
+      "id": "pepperpotts",
+      "name": "PEPPERPOTTS",
+      "role": "Standing Watchdog",
+      "station": "patrol",
+      "story": "Named after a very real dog. Patrols every change.",
+      "status": "on patrol"
+    },
+    {
+      "id": "steo",
+      "name": "STEO",
+      "role": "Deploy Gate",
+      "station": "checkpoint",
+      "story": "Named for the commanding officer of Builder01's life.",
+      "status": "holding the checkpoint"
+    },
+    {
+      "id": "tcd",
+      "name": "TCD",
+      "role": "Decision Ledger",
+      "station": "writing-desk",
+      "story": "Named after an old coffee venture, now literally the daily record.",
+      "status": "writing the daily record"
+    },
+    {
+      "id": "singsangsung",
+      "name": "SINGSANG(SUNG)",
+      "role": "Fundamentals Mentor",
+      "station": "whiteboard",
+      "story": "Named for the person who started Builder01's AI journey.",
+      "status": "at the whiteboard"
+    }
   ],
   "replay": {
     "title": "A real founding day, replayed",
     "date": "2026-07-17",
     "speedNote": "one working day in about thirty seconds",
     "events": [
-      { "t": 0, "agent": "tcd", "caption": "Founding decisions logged: the agency is born" },
-      { "t": 3, "agent": "31hks", "caption": "Spec Gate built first: no spec, no build" },
-      { "t": 6, "agent": "pepperpotts", "caption": "Watchdog joins: QA becomes a standing patrol" },
-      { "t": 9, "agent": "steo", "caption": "Deploy Gate online: greenlights get unbundled" },
-      { "t": 12, "agent": "singsangsung", "caption": "Mentor joins: every build ends with a lesson" },
-      { "t": 15, "agent": "ee", "caption": "Design Director joins: adjectives become exact values" },
-      { "t": 18, "agent": "ee", "caption": "A third-party design library is reviewed, vendored, and adopted" },
-      { "t": 22, "agent": "pepperpotts", "caption": "Retroactive audit: 12 skills swept, 3 flagged, house rules set" },
-      { "t": 26, "agent": "tcd", "caption": "Every decision of the day is in the ledger" },
-      { "t": 29, "agent": "31hks", "caption": "A new build request arrives... the door is shut until the spec is written" }
+      {
+        "t": 0,
+        "agent": "tcd",
+        "caption": "Founding decisions logged: the agency is born"
+      },
+      {
+        "t": 3,
+        "agent": "31hks",
+        "caption": "Spec Gate built first: no spec, no build"
+      },
+      {
+        "t": 6,
+        "agent": "pepperpotts",
+        "caption": "Watchdog joins: QA becomes a standing patrol"
+      },
+      {
+        "t": 9,
+        "agent": "steo",
+        "caption": "Deploy Gate online: greenlights get unbundled"
+      },
+      {
+        "t": 12,
+        "agent": "singsangsung",
+        "caption": "Mentor joins: every build ends with a lesson"
+      },
+      {
+        "t": 15,
+        "agent": "ee",
+        "caption": "Design Director joins: adjectives become exact values"
+      },
+      {
+        "t": 18,
+        "agent": "ee",
+        "caption": "A third-party design library is reviewed, vendored, and adopted"
+      },
+      {
+        "t": 22,
+        "agent": "pepperpotts",
+        "caption": "Retroactive audit: 12 skills swept, 3 flagged, house rules set"
+      },
+      {
+        "t": 26,
+        "agent": "tcd",
+        "caption": "Every decision of the day is in the ledger"
+      },
+      {
+        "t": 29,
+        "agent": "31hks",
+        "caption": "A new build request arrives... the door is shut until the spec is written"
+      }
     ]
   }
 }
@@ -1174,11 +1307,15 @@
       li.appendChild(p);
       roster.appendChild(li);
     }
-    const s = window.AGENCY.stats;
-    document.getElementById('record-line').textContent =
-      'As of ' + window.AGENCY.generated + ': ' + s.decisions + ' decisions logged, ' +
-      s.debriefs + ' session debrief on file, ' + s.specsGated + ' build gated through a written spec, ' +
-      s.agents + ' agents on shift. Exported from the agency ledger; work engagements appear as counts only.';
+    const plural = (n, w) => n + ' ' + (n === 1 ? w : w + 's');
+    const plaqueLine = (label, d) =>
+      label + ' :: ' + d.date + ' :: ' + plural(d.divisions, 'division') + ', ' +
+      plural(d.agents, 'agent') + ', ' + plural(d.decisions, 'decision');
+    // 'today' is padded to the width of 'day zero' so the :: columns align.
+    document.getElementById('plaque-day-zero').textContent = plaqueLine('day zero', window.AGENCY.dayZero);
+    document.getElementById('plaque-today').textContent = plaqueLine('today   ', window.AGENCY.today);
+    // Unpadded variant: the replay's closing caption arrives at now.
+    window.AGENCY.todayLine = plaqueLine('today', window.AGENCY.today);
   })();
 </script>
 
@@ -3490,6 +3627,7 @@ function initBackroomsOffice(canvas, data, opts) {
   // handle. A bare var re-declaration is a no-op for an assigned name.
   var officeHandle;
   var officeReplayRunning;
+  var officeCaptionTimer;
   function bootBackroomsOffice() {
     const caption = document.getElementById('office-caption');
     if (!officeHandle) {
@@ -3507,12 +3645,20 @@ function initBackroomsOffice(canvas, data, opts) {
             ev.preventDefault();
             if (officeReplayRunning || !officeHandle) return;
             officeReplayRunning = true;
+            clearTimeout(officeCaptionTimer);
             officeHandle.playReplay(
               window.AGENCY.replay,
               (event) => { if (caption) caption.textContent = event.caption; },
               () => {
                 officeReplayRunning = false;
-                if (caption) caption.textContent = 'the floor is live :: six agents on shift';
+                if (!caption) return;
+                // The reel ends by arriving at now: the plaque's today line
+                // holds for a beat, then the floor goes back to being live.
+                caption.textContent = window.AGENCY.todayLine || 'the floor is live :: six agents on shift';
+                clearTimeout(officeCaptionTimer);
+                officeCaptionTimer = setTimeout(() => {
+                  if (!officeReplayRunning) caption.textContent = 'the floor is live :: six agents on shift';
+                }, 5000);
               }
             );
           });
@@ -3532,6 +3678,7 @@ function initBackroomsOffice(canvas, data, opts) {
     if (!officeHandle) return;
     officeHandle.stop();
     officeReplayRunning = false;
+    clearTimeout(officeCaptionTimer);
   }
 
   // A hop between any two scenes, in either direction: the old page
