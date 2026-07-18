@@ -284,6 +284,24 @@
     font-weight: 500;
     letter-spacing: 0.06em;
   }
+  /* Division grouping: operational headers bright and unbulleted; divisions
+     in discovery dim, lowercase, and dateless until they earn otherwise.
+     Both are structure, not staff, so neither carries the staff-row middot. */
+  #backrooms-scene .roster-division::before,
+  #backrooms-scene .roster-discovery::before { content: none; }
+  #backrooms-scene .roster-division {
+    list-style: none;
+    margin: 0 0 1em;
+    color: #eef5ef;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  #backrooms-scene .roster-discovery {
+    list-style: none;
+    margin-top: 1.2em;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
   /* The record plaque: two aligned mono data lines (white-space: pre keeps
      the day zero / today columns in register), the house motto dimmer, and
      the provenance note dimmest. Narrow widths shrink the type instead of
@@ -1150,10 +1168,23 @@
     "date": "18/07/2026",
     "divisions": 1,
     "agents": 6,
-    "decisions": 13
+    "decisions": 14
   },
+  "divisions": [
+    {
+      "id": "build",
+      "name": "BUILD",
+      "est": "17/07/2026",
+      "status": "operational"
+    },
+    {
+      "id": "governance-compliance",
+      "name": "governance & compliance",
+      "status": "discovery"
+    }
+  ],
   "stats": {
-    "decisions": 13,
+    "decisions": 14,
     "debriefs": 2,
     "lessons": 1,
     "agents": 6,
@@ -1172,11 +1203,13 @@
     "Governance & Compliance chosen as the agency's first discovery division",
     "No finished agents: every agent evolves continuously, founding six included",
     "Agency objectives clarified; division scope decision",
+    "Backrooms plaque + replay relabel deployed to jaredchan.ai",
     "Ledger: 18 July 2026 - repo renamed continuity-vault to agency"
   ],
   "agents": [
     {
       "id": "31hks",
+      "division": "build",
       "name": "31HKS",
       "role": "Spec Gate",
       "station": "doorway",
@@ -1185,6 +1218,7 @@
     },
     {
       "id": "ee",
+      "division": "build",
       "name": "EE",
       "role": "Design Director",
       "station": "drafting-table",
@@ -1193,6 +1227,7 @@
     },
     {
       "id": "pepperpotts",
+      "division": "build",
       "name": "PEPPERPOTTS",
       "role": "Standing Watchdog",
       "station": "patrol",
@@ -1201,6 +1236,7 @@
     },
     {
       "id": "steo",
+      "division": "build",
       "name": "STEO",
       "role": "Deploy Gate",
       "station": "checkpoint",
@@ -1209,6 +1245,7 @@
     },
     {
       "id": "tcd",
+      "division": "build",
       "name": "TCD",
       "role": "Decision Ledger",
       "station": "writing-desk",
@@ -1217,6 +1254,7 @@
     },
     {
       "id": "singsangsung",
+      "division": "build",
       "name": "SINGSANG(SUNG)",
       "role": "Fundamentals Mentor",
       "station": "whiteboard",
@@ -1291,8 +1329,13 @@
   // script never needs to change with the data.
   window.AGENCY = JSON.parse(document.getElementById('agency-data').textContent);
   (function () {
+    const plural = (n, w) => n + ' ' + (n === 1 ? w : w + 's');
+    // The roster is the org's staff directory: agents grouped under their
+    // division, then one dim row per division still in discovery. Divisions
+    // earn their caps and est. date by going operational.
     const roster = document.getElementById('roster');
-    for (const a of window.AGENCY.agents) {
+    const divisions = window.AGENCY.divisions || [];
+    const addAgentRow = (a) => {
       const li = document.createElement('li');
       const b = document.createElement('b');
       b.textContent = a.name + ' :: ' + a.role;
@@ -1301,8 +1344,27 @@
       li.appendChild(b);
       li.appendChild(p);
       roster.appendChild(li);
+    };
+    const placed = new Set();
+    for (const d of divisions) {
+      if (d.status !== 'operational') continue;
+      const staff = window.AGENCY.agents.filter((a) => a.division === d.id);
+      const h = document.createElement('li');
+      h.className = 'roster-division';
+      h.textContent = d.name + ' :: est. ' + d.est + ' :: ' + plural(staff.length, 'agent');
+      roster.appendChild(h);
+      staff.forEach((a) => { placed.add(a.id); addAgentRow(a); });
     }
-    const plural = (n, w) => n + ' ' + (n === 1 ? w : w + 's');
+    // Safety net: an agent whose division id matches no operational group
+    // still gets a row. A data typo must never vanish a staff member.
+    window.AGENCY.agents.filter((a) => !placed.has(a.id)).forEach(addAgentRow);
+    for (const d of divisions) {
+      if (d.status !== 'discovery') continue;
+      const li = document.createElement('li');
+      li.className = 'roster-discovery';
+      li.textContent = d.name + ' :: in discovery';
+      roster.appendChild(li);
+    }
     const plaqueLine = (label, d) =>
       label + ' :: ' + d.date + ' :: ' + plural(d.divisions, 'division') + ', ' +
       plural(d.agents, 'agent') + ', ' + plural(d.decisions, 'decision');
