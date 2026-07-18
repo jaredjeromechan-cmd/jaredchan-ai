@@ -1309,8 +1309,6 @@
     // 'today' is padded to the width of 'day zero' so the :: columns align.
     document.getElementById('plaque-day-zero').textContent = plaqueLine('day zero', window.AGENCY.dayZero);
     document.getElementById('plaque-today').textContent = plaqueLine('today   ', window.AGENCY.today);
-    // Unpadded variant: the replay's closing caption arrives at now.
-    window.AGENCY.todayLine = plaqueLine('today', window.AGENCY.today);
   })();
 </script>
 
@@ -3647,9 +3645,9 @@ function initBackroomsOffice(canvas, data, opts) {
               () => {
                 officeReplayRunning = false;
                 if (!caption) return;
-                // The reel ends by arriving at now: the plaque's today line
-                // holds for a beat, then the floor goes back to being live.
-                caption.textContent = window.AGENCY.todayLine || 'the floor is live :: six agents on shift';
+                // The reel ends by arriving at now: a bare "today." holds
+                // for a beat, then the floor goes back to being live.
+                caption.textContent = 'today.';
                 clearTimeout(officeCaptionTimer);
                 officeCaptionTimer = setTimeout(() => {
                   if (!officeReplayRunning) caption.textContent = 'the floor is live :: six agents on shift';

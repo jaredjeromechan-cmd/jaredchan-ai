@@ -26,8 +26,9 @@ replay button must be named for what it will become: the reel since day zero.
       working; privacy allowlist unchanged in spirit (counts and titles only).
 - [ ] Fresh export run, JSON reviewed line by line against privacy rules, pasted into
       the inline #agency-data block.
-- [ ] Replay end: onDone caption shows the plaque's today line for ~5s, then returns to
-      `the floor is live :: six agents on shift`.
+- [ ] Replay end: onDone caption shows `today.` for ~5s, then returns to
+      `the floor is live :: six agents on shift`. (Amended 18/07/2026 at the gate:
+      Jared simplified the closing caption from the full today line to `today.`)
 - [ ] Reduced motion unaffected (plaque is static text; replay button already hidden).
 - [ ] Copy is lowercase mono, Singapore English, no em dashes anywhere.
 
